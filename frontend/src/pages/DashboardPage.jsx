@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
-import ChartCard from '../components/common/ChartCard';
 import AlertCard from '../components/common/AlertCard';
 import SectionHeader from '../components/common/SectionHeader';
 import EnvironmentOverviewCard from '../components/dashboard/EnvironmentOverviewCard';
-import TrafficChart from '../components/dashboard/TrafficChart';
 import TgwStatusCard from '../components/dashboard/TgwStatusCard';
+import NetworkHealthChart from '../components/dashboard/NetworkHealthChart';
+import RecentActivityTimeline from '../components/dashboard/RecentActivityTimeline';
+import SecurityOverviewCard from '../components/dashboard/SecurityOverviewCard';
+import AiInsightCard from '../components/dashboard/AiInsightCard';
+import VpcDetailModal from '../components/network/VpcDetailModal';
 import LoadingState from '../components/common/LoadingState';
 import ErrorState from '../components/common/ErrorState';
 import { dashboardService } from '../services/dashboardService';
 import { vpcService } from '../services/vpcService';
 import { transitGatewayService } from '../services/transitGatewayService';
-import { monitoringService } from '../services/monitoringService';
 import { RefreshCw, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -20,24 +22,25 @@ export const DashboardPage = () => {
   const [summary, setSummary] = useState(null);
   const [vpcs, setVpcs] = useState([]);
   const [tgw, setTgw] = useState(null);
-  const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedVpc, setSelectedVpc] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastSync, setLastSync] = useState('Just now');
 
   const loadDashboard = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [sumData, vpcData, tgwData, metricData] = await Promise.all([
+      const [sumData, vpcData, tgwData] = await Promise.all([
         dashboardService.getSummary(),
         vpcService.getVpcs(),
         transitGatewayService.getTransitGateway(),
-        monitoringService.getMetrics(),
       ]);
       setSummary(sumData);
       setVpcs(vpcData);
       setTgw(tgwData);
-      setMetrics(metricData);
+      setLastSync('Just now');
     } catch (err) {
       setError(err.message || 'Error loading dashboard telemetry');
     } finally {
@@ -49,6 +52,11 @@ export const DashboardPage = () => {
     loadDashboard();
   }, []);
 
+  const handleViewVpcDetails = (vpc) => {
+    setSelectedVpc(vpc);
+    setIsModalOpen(true);
+  };
+
   if (loading) return <LoadingState message="Connecting to CloudNexus network intelligence..." />;
   if (error) return <ErrorState message={error} onRetry={loadDashboard} />;
 
@@ -56,62 +64,78 @@ export const DashboardPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Enterprise Multi-VPC Network Hub"
-        subtitle="Centralized management and observability across AWS Transit Gateway connected environments."
+        title="Network Overview"
+        subtitle="Monitor your AWS multi-VPC infrastructure from a single control plane."
         actions={
-          <button
-            onClick={loadDashboard}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh Telemetry</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+              Last synchronized: <strong className="text-slate-800">{lastSync}</strong>
+            </span>
+            <button
+              onClick={loadDashboard}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+              <span>Refresh</span>
+            </button>
+          </div>
         }
       />
 
-      {/* Primary KPI Metric Cards */}
+      {/* Top 6 Stat Cards (Explicitly specified in p2.txt) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {/* CARD 1: Total VPCs */}
         <StatCard
           title="Total VPCs"
-          value={summary?.totalVpcs || 3}
-          subvalue="DEV, TEST, PROD"
+          value="3"
+          subvalue="3 connected environments"
           icon="Layers"
           color="blue"
         />
+
+        {/* CARD 2: Transit Gateway */}
         <StatCard
           title="Transit Gateway"
-          value={summary?.transitGatewayStatus || 'Available'}
-          subvalue={summary?.transitGatewayName || 'Enterprise-TGW'}
+          value="Available"
+          subvalue="Enterprise-TGW"
           icon="Share2"
-          color="indigo"
+          color="green"
         />
+
+        {/* CARD 3: TGW Attachments */}
         <StatCard
           title="TGW Attachments"
-          value={summary?.tgwAttachments || 3}
-          subvalue="3 VPC Attachments"
+          value="3"
+          subvalue="All attachments active"
           icon="Network"
-          color="cyan"
+          color="indigo"
         />
+
+        {/* CARD 4: EC2 Instances */}
         <StatCard
           title="EC2 Instances"
-          value={summary?.ec2Instances || 3}
-          subvalue="Workload nodes running"
+          value="3"
+          subvalue="2 healthy • 1 attention"
           icon="Server"
-          color="green"
+          color="cyan"
         />
+
+        {/* CARD 5: Network Health */}
         <StatCard
           title="Network Health"
-          value={`${summary?.networkHealth || 94}%`}
-          subvalue="Zero packet loss"
+          value="94%"
+          subvalue="+3.2% from previous check"
           icon="Activity"
           color="green"
-          trend="+2.1%"
+          trend="+3.2%"
           trendDirection="up"
         />
+
+        {/* CARD 6: Security Findings */}
         <StatCard
           title="Security Findings"
-          value={summary?.securityFindings || 4}
-          subvalue="1 Policy Enforced"
+          value="4"
+          subvalue="1 critical • 2 warnings"
           icon="ShieldCheck"
           color="amber"
         />
@@ -120,70 +144,61 @@ export const DashboardPage = () => {
       {/* Priority Alert Banner */}
       <AlertCard
         severity="info"
-        title="Cross-VPC Transit Hub Active"
-        description="Enterprise-TGW in us-east-1 is actively routing private traffic between DEV (10.10.0.0/16), TEST (10.20.0.0/16), and PROD (10.30.0.0/16). Prod-App-SG policy isolates DEV direct ingress."
+        title="Enterprise Transit Hub Active (us-east-1)"
+        description="Enterprise-TGW is actively routing between DEV (10.10.0.0/16), TEST (10.20.0.0/16), and PROD (10.30.0.0/16). Prod-App-SG strictly enforces DEV direct ingress isolation."
         action="Run Diagnostics"
         onAction={() => (window.location.href = '/connectivity')}
       />
 
-      {/* Main Grid: VPC Breakdown & Transit Gateway Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          <SectionHeader
-            title="Monitored VPC Environments"
-            description="Dedicated VPC environments connected via dedicated Transit Gateway attachments."
-            action={
-              <Link to="/vpcs" className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                <span>View all VPCs</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            }
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {vpcs.map((vpc) => (
-              <EnvironmentOverviewCard key={vpc.id} vpc={vpc} />
-            ))}
-          </div>
-
-          {/* Traffic Throughput Chart */}
-          <div className="pt-2">
-            <ChartCard
-              title="Cross-VPC Transit Gateway Throughput"
-              subtitle="Aggregated ingress and egress packet volume across all 3 attachments (MB/s)"
+      {/* VPC Environment Overview Section */}
+      <div className="space-y-4">
+        <SectionHeader
+          title="Environment Overview"
+          description="Dedicated VPC environments connected via dedicated Transit Gateway attachments."
+          action={
+            <Link
+              to="/vpcs"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group"
             >
-              <TrafficChart data={metrics?.throughput || []} />
-            </ChartCard>
-          </div>
-        </div>
-
-        {/* Right Column: TGW Status & Quick Links */}
-        <div className="space-y-6">
-          <TgwStatusCard tgw={tgw} />
-
-          {/* Architecture Insights Card */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Architecture Highlights</h4>
-            <ul className="text-xs space-y-2 text-slate-600">
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
-                <span>Centralized Hub-and-Spoke avoiding mesh peering overhead.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
-                <span>Private application connectivity over HTTP port 8080.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                <span>DEV to PROD access strictly blocked by SG isolation policies.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 flex-shrink-0" />
-                <span>Systems Manager Session Manager enabled for secure administration.</span>
-              </li>
-            </ul>
-          </div>
+              <span>View all VPCs</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          }
+        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {vpcs.map((vpc) => (
+            <EnvironmentOverviewCard
+              key={vpc.id}
+              vpc={vpc}
+              onViewDetails={handleViewVpcDetails}
+            />
+          ))}
         </div>
       </div>
+
+      {/* Middle Row: Network Health Chart & Transit Gateway Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <NetworkHealthChart />
+        </div>
+        <div>
+          <TgwStatusCard tgw={tgw} />
+        </div>
+      </div>
+
+      {/* Bottom Row: Recent Activity, Security Overview & AI Insight Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <RecentActivityTimeline />
+        <SecurityOverviewCard />
+        <AiInsightCard />
+      </div>
+
+      {/* VPC Detail Modal */}
+      <VpcDetailModal
+        vpc={selectedVpc}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

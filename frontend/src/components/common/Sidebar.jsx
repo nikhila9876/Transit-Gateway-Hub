@@ -58,18 +58,18 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
           </div>
           <div>
             <div className="font-bold text-slate-900 text-base tracking-tight">{APP_NAME}</div>
-            <div className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">AWS Network Hub</div>
+            <div className="text-[11px] text-slate-500 font-medium tracking-tight">Network Intelligence</div>
           </div>
         </div>
 
         {/* Navigation Categories */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-5" aria-label="Main Navigation">
           {NAVIGATION_ITEMS.map((section, idx) => (
             <div key={idx}>
-              <div className="px-3 mb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              <div className="px-3 mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 {section.category}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const Icon = ICON_MAP[item.icon] || Circle;
                   return (
@@ -80,12 +80,12 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                           isActive
-                            ? 'bg-blue-50 text-blue-700 font-semibold'
+                            ? 'bg-blue-50/90 text-blue-700 font-semibold border-l-2 border-blue-600 shadow-2xs'
                             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         }`
                       }
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-4 h-4 flex-shrink-0" />
                       <span>{item.name}</span>
                     </NavLink>
                   );
@@ -93,7 +93,7 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
               </div>
             </div>
           ))}
-        </div>
+        </nav>
 
         {/* Bottom Section: System Status & User Profile */}
         <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
@@ -104,25 +104,28 @@ export const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="font-medium text-slate-700">Hub Active</span>
+              <span className="font-semibold text-slate-700">Hub Active</span>
             </div>
-            <span className="font-mono text-slate-400 text-[10px]">us-east-1</span>
+            <span className="font-mono text-slate-500 text-[10px]">us-east-1</span>
           </div>
 
           {/* User Profile */}
           <div className="flex items-center justify-between px-2 pt-1">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
-                {user?.username ? user.username.charAt(0) : 'U'}
+              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
+                {user?.username ? user.username.charAt(0) : 'A'}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-800 truncate">{user?.username || 'Guest Engineer'}</p>
-                <p className="text-[10px] text-slate-400 truncate">{user?.role === 'ROLE_ADMIN' ? 'Administrator' : 'Viewer'}</p>
+                <p className="text-xs font-semibold text-slate-800 truncate">{user?.username || 'admin'}</p>
+                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider truncate">
+                  Role: {user?.role === 'ROLE_VIEWER' ? 'VIEWER' : 'ADMIN'}
+                </p>
               </div>
             </div>
             <button
               onClick={logout}
               title="Sign out"
+              aria-label="Sign out"
               className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
             >
               <LogOut className="w-4 h-4" />

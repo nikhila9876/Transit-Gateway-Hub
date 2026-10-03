@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import TopologyGraph from '../components/network/TopologyGraph';
 import VpcDetailModal from '../components/network/VpcDetailModal';
-import { MOCK_VPCS } from '../data/mockData';
-import { Info, ZoomIn, Share2, Layers } from 'lucide-react';
+import { MOCK_VPCS } from '../data/mockVpcs';
+import { Info, ZoomIn, Layers, Share2, Server } from 'lucide-react';
 
 export const NetworkTopologyPage = () => {
   const [selectedVpc, setSelectedVpc] = useState(null);
@@ -36,31 +36,45 @@ export const NetworkTopologyPage = () => {
         }
       />
 
-      {/* Legend & Guide Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-xl border border-slate-200 shadow-sm text-xs">
-        <div className="flex items-center gap-4">
-          <span className="font-semibold text-slate-700">Topology Legend:</span>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-slate-600">Enterprise-TGW Hub</span>
+      {/* Legend & Guide Bar (Strictly as specified in p2.txt) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-xs">
+        <div className="flex flex-wrap items-center gap-5">
+          <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Legend:</span>
+          
+          {/* Blue: Network */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-blue-600 ring-2 ring-blue-100" />
+            <span className="text-slate-700 font-medium">Blue: Network / TGW</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-sky-400" />
-            <span className="text-slate-600">Dev VPC (10.10.0.0/16)</span>
+
+          {/* Green: Healthy */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-emerald-100" />
+            <span className="text-slate-700 font-medium">Green: Healthy</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-cyan-400" />
-            <span className="text-slate-600">Test VPC (10.20.0.0/16)</span>
+
+          {/* Amber: Warning */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-amber-500 ring-2 ring-amber-100" />
+            <span className="text-slate-700 font-medium">Amber: Warning</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-indigo-500" />
-            <span className="text-slate-600">Prod VPC (10.30.0.0/16)</span>
+
+          {/* Red: Failed */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-rose-500 ring-2 ring-rose-100" />
+            <span className="text-slate-700 font-medium">Red: Failed</span>
+          </div>
+
+          {/* Purple: AI/Intelligence */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-purple-600 ring-2 ring-purple-100" />
+            <span className="text-slate-700 font-medium">Purple: AI/Intelligence</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-500">
-          <Info className="w-4 h-4 text-blue-500" />
-          <span>Solid lines indicate TGW Attachments; Dashed lines indicate workload instances</span>
+        <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
+          <Info className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+          <span>Click any VPC node to view subnets, routes, and security groups</span>
         </div>
       </div>
 

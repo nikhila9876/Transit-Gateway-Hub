@@ -6,8 +6,8 @@ export const AiAssistantPage = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Network AI Assistant"
-        subtitle="Conversational architecture advisor providing deep reasoning on VPC routing, Transit Gateway topologies, and security rules."
+        title="CloudNexus Intelligence"
+        subtitle="AI-powered network analysis and infrastructure guidance."
         breadcrumbs={[{ label: 'Intelligence' }, { label: 'AI Assistant' }]}
       />
 
