@@ -1,75 +1,109 @@
-<p align="center">
-  <img src="screenshots/architecture-overview.png"
-       alt="Transit Gateway Hub for Three VPC Environments"
-       width="100%">
-</p>
+# Enterprise Multi-VPC Network Hub Using AWS Transit Gateway
 
-<h1 align="center">🚀 Transit Gateway Hub for Three VPC Environments</h1>
+CloudNexus is the planned name for a network-management platform built around this AWS networking demonstration. The current repository documents an enterprise-style hub-and-spoke topology for DEV, TEST, and PROD environments.
 
-<p align="center">
-  <b>Centralized • Secure • Scalable • Simplified AWS Networking</b>
-</p>
+## Table of Contents
 
-<p align="center">
-  <img src="https://img.shields.io/badge/AWS-Cloud-orange?style=for-the-badge&logo=amazon-aws">
-  <img src="https://img.shields.io/badge/Amazon-VPC-blue?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Transit%20Gateway-Hub-purple?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Amazon-EC2-orange?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Git-GitHub-black?style=for-the-badge&logo=github">
-</p>
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Implemented Lab Scope](#implemented-lab-scope)
+- [Network Configuration](#network-configuration)
+- [Routing and Security](#routing-and-security)
+- [Connectivity Testing](#connectivity-testing)
+- [Technology Stack](#technology-stack)
+- [Security Principles](#security-principles)
+- [Setup](#setup)
+- [Future Scope](#future-scope)
 
----
+## Overview
 
-## 📌 Project Overview
+AWS Transit Gateway provides a centralized network hub for three VPCs. Each VPC connects to the hub through a dedicated VPC attachment, avoiding a growing set of direct VPC-to-VPC connections.
 
-This project implements a centralized **AWS Transit Gateway Hub** to provide private network connectivity between three isolated VPC environments:
+The lab demonstrates VPCs, subnets, route tables, Internet Gateways, EC2, Security Groups, Transit Gateway attachments, Session Manager administration, and cross-VPC private connectivity testing over HTTP.
 
-- 🟦 **DEV** — `10.0.0.0/16`
-- 🟨 **STAGE** — `20.0.0.0/16`
-- 🟥 **PROD** — `30.0.0.0/16`
+## Architecture
 
-The Transit Gateway acts as a central networking hub, allowing the three VPCs to communicate without requiring direct VPC peering connections.
+```mermaid
+flowchart TD
+    User[User] --> Platform[CloudNexus Platform]
+    Platform --> React[React Frontend]
+    React -->|HTTPS| Backend[Spring Boot Backend]
+    Backend --> SDK[AWS SDK]
+    SDK --> AWS[AWS APIs]
+    AWS --> TGW[Enterprise-TGW]
+    TGW --> Dev[Dev-VPC\n10.10.0.0/16]
+    TGW --> Test[Test-VPC\n10.20.0.0/16]
+    TGW --> Prod[Prod-VPC\n10.30.0.0/16]
+    Dev --> DevEC2[Dev-App-Server\nHTTP :8080]
+    Test --> TestEC2[Test-App-Server\nHTTP :8080]
+    Prod --> ProdEC2[Prod-App-Server\nHTTP :8080]
+```
 
----
+The frontend must not hold AWS credentials or call AWS resources directly. The intended flow is React -> Spring Boot -> AWS SDK -> AWS APIs. Private workload traffic follows the VPC route table, Transit Gateway, destination attachment, destination VPC, and destination EC2 path.
 
-## 🎯 Project Objectives
+## Implemented Lab Scope
 
-- Create three independent AWS VPC environments.
-- Connect the VPCs using a centralized AWS Transit Gateway.
-- Configure VPC attachments for DEV, STAGE, and PROD.
-- Configure Transit Gateway route propagation.
-- Configure VPC route tables for inter-VPC communication.
-- Deploy EC2 instances for connectivity testing.
-- Verify connectivity using ICMP ping.
-- Document and maintain the project using Git and GitHub.
+The documented lab scope includes the AWS network, one EC2 application server per environment, simple HTTP responses on port `8080`, and Session Manager-based administration. The CloudNexus frontend, Spring Boot backend, JWT authentication, AWS SDK management APIs, and AI assistant are planned architecture unless implemented elsewhere in the repository.
 
----
+## Network Configuration
 
-## 🏗️ Architecture
+All resources are documented in the `us-east-1` Region.
 
-<p align="center">
-  <img src="screenshots/transit-gateway.png"
-       alt="AWS Transit Gateway Configuration"
-       width="95%">
-</p>
+| Environment | VPC | CIDR | Public subnet | Private application subnet | EC2 server | Response |
+| --- | --- | --- | --- | --- | --- | --- |
+| DEV | `Dev-VPC` | `10.10.0.0/16` | `10.10.1.0/24` | `10.10.2.0/24` | `Dev-App-Server` | `HELLO FROM DEV VPC` |
+| TEST | `Test-VPC` | `10.20.0.0/16` | `10.20.1.0/24` | `10.20.2.0/24` | `Test-App-Server` | `HELLO FROM TEST VPC` |
+| PROD | `Prod-VPC` | `10.30.0.0/16` | `10.30.1.0/24` | `10.30.2.0/24` | `Prod-App-Server` | `HELLO FROM PROD VPC` |
 
-### 🌐 Network Architecture
+Public subnets are intended for resources that need a path through an Internet Gateway. Private application subnets are reserved for internal workloads without direct Internet exposure. The current learner-lab implementation uses EC2 instances in the public application/testing path for simplicity; it is not a fully private EC2 deployment.
 
-```text
-                         ┌─────────────────────────┐
-                         │     AWS TRANSIT         │
-                         │       GATEWAY           │
-                         │        TGW HUB          │
-                         └────────────┬────────────┘
-                                      │
-                 ┌────────────────────┼────────────────────┐
-                 │                    │                    │
-                 ▼                    ▼                    ▼
-          ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-          │   DEV VPC   │      │  STAGE VPC  │      │   PROD VPC  │
-          │ 10.0.0.0/16 │      │ 20.0.0.0/16 │      │ 30.0.0.0/16 │
-          └──────┬──────┘      └──────┬──────┘      └──────┬──────┘
-                 │                    │                    │
-                 ▼                    ▼                    ▼
-             EC2-DEV              EC2-STAGE             EC2-PROD
-             10.0.1.77             20.0.1.187             30.0.1.235
+Each VPC has its own Internet Gateway: `Dev-IGW`, `Test-IGW`, and `Prod-IGW`. Public route tables are `Dev-Public-RT`, `Test-Public-RT`, and `Prod-Public-RT`.
+
+## Routing and Security
+
+The Transit Gateway is `Enterprise-TGW`, with attachments `Dev-TGW-Attachment`, `Test-TGW-Attachment`, and `Prod-TGW-Attachment`. The intended Transit Gateway routes map `10.10.0.0/16`, `10.20.0.0/16`, and `10.30.0.0/16` to the corresponding attachment.
+
+The intended VPC routes are DEV -> TEST and PROD, TEST -> DEV and PROD, and PROD -> DEV and TEST, all through `Enterprise-TGW`. Verify route tables in AWS before treating any route as present in a live account.
+
+The application Security Groups are `Dev-App-SG`, `Test-App-SG`, and `Prod-App-SG`. The intended policy allows DEV -> TEST and TEST -> PROD on TCP port `8080`; the PROD policy restricts DEV -> PROD. Routing and Security Group rules work together, and Security Groups alone do not implement the entire network security model.
+
+## Connectivity Testing
+
+Run tests from an EC2 instance through Session Manager using private addresses:
+
+```bash
+curl http://<TEST_PRIVATE_IP>:8080
+# HELLO FROM TEST VPC
+
+curl http://<PROD_PRIVATE_IP>:8080
+# HELLO FROM PROD VPC
+```
+
+The DEV -> PROD request should be restricted according to the PROD Security Group policy. Keep private IPs as placeholders in committed documentation.
+
+## Technology Stack
+
+| Area | Technologies |
+| --- | --- |
+| AWS lab | Amazon VPC, Transit Gateway, EC2, Systems Manager, IAM, Internet Gateway, route tables, Security Groups |
+| Planned frontend | React, Vite, TypeScript, Tailwind CSS, React Router, React Flow |
+| Planned backend | Java, Spring Boot, Maven, Spring Security, JWT, AWS SDK for Java |
+| Development | Git, GitHub, VS Code, GitHub Copilot / AI-assisted development |
+| Planned operations | CloudWatch where implemented, monitoring, and audit information |
+
+## Security Principles
+
+- Never hardcode AWS credentials, API keys, or secrets.
+- Never commit secret `.env` files, `node_modules`, or build output.
+- Prefer IAM roles and instance profiles, including `LabInstanceProfile` in the learner lab.
+- Use least privilege and Session Manager instead of unnecessary public SSH access.
+- Keep environments separated and use private IPs for internal application traffic.
+- Keep a human in control of production changes; AI must not automatically modify production networking or security configuration.
+
+## Setup
+
+See [docs/setup.md](docs/setup.md) for the step-by-step AWS setup, application deployment, connectivity checks, troubleshooting, and cleanup guidance.
+
+## Future Scope
+
+Planned improvements include a React topology visualization, Spring Boot AWS management APIs, AWS SDK integration, CloudWatch monitoring, VPC Flow Logs, a network health dashboard, automated diagnostics, AI-assisted troubleshooting, role-based access control, audit logging, Terraform or CloudFormation, CI/CD, automated validation, private-subnet architecture, multi-Availability Zone high availability, and centralized security monitoring. These remain future scope unless implemented in the repository.
