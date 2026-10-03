@@ -1,21 +1,12 @@
 package com.cloudnexus.service;
 
-import com.cloudnexus.model.AuditLog;
-import com.cloudnexus.repository.MockDataStore;
-import org.springframework.stereotype.Service;
-
+import com.cloudnexus.dto.AuditLogDto;
 import java.util.List;
 
-@Service
-public class AuditService {
-
-    private final MockDataStore dataStore;
-
-    public AuditService(MockDataStore dataStore) {
-        this.dataStore = dataStore;
-    }
-
-    public List<AuditLog> getAuditLogs() {
-        return dataStore.getAuditLogs();
-    }
+/**
+ * Service contract for system and security event audit logs.
+ */
+public interface AuditService {
+    List<AuditLogDto> getAllLogs();
+    void recordLog(AuditLogDto auditLog);
 }

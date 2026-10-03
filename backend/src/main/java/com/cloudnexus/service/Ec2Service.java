@@ -1,21 +1,13 @@
 package com.cloudnexus.service;
 
-import com.cloudnexus.model.Ec2Instance;
-import com.cloudnexus.repository.MockDataStore;
-import org.springframework.stereotype.Service;
-
+import com.cloudnexus.dto.Ec2InstanceDto;
 import java.util.List;
+import java.util.Optional;
 
-@Service
-public class Ec2Service {
-
-    private final MockDataStore dataStore;
-
-    public Ec2Service(MockDataStore dataStore) {
-        this.dataStore = dataStore;
-    }
-
-    public List<Ec2Instance> getAllInstances() {
-        return dataStore.getAllEc2Instances();
-    }
+/**
+ * Service contract for EC2 instance status and cross-VPC application reachability.
+ */
+public interface Ec2Service {
+    List<Ec2InstanceDto> getAllEc2Instances();
+    Optional<Ec2InstanceDto> getInstanceById(String id);
 }

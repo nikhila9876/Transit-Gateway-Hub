@@ -1,9 +1,9 @@
 package com.cloudnexus.controller;
 
 import com.cloudnexus.dto.ApiResponse;
-import com.cloudnexus.model.TransitGateway;
-import com.cloudnexus.model.TgwAttachment;
-import com.cloudnexus.model.TgwRoute;
+import com.cloudnexus.dto.TransitGatewayAttachmentDto;
+import com.cloudnexus.dto.TransitGatewayDto;
+import com.cloudnexus.dto.TransitGatewayRouteDto;
 import com.cloudnexus.service.TransitGatewayService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,17 +21,17 @@ public class TransitGatewayController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<TransitGateway>> getTransitGateway() {
-        return ResponseEntity.ok(ApiResponse.ok(tgwService.getTransitGateway()));
+    public ResponseEntity<ApiResponse<TransitGatewayDto>> getTransitGateway() {
+        return ResponseEntity.ok(ApiResponse.ok("Transit Gateway details fetched successfully", tgwService.getTransitGateway()));
     }
 
     @GetMapping("/attachments")
-    public ResponseEntity<ApiResponse<List<TgwAttachment>>> getAttachments() {
-        return ResponseEntity.ok(ApiResponse.ok(tgwService.getAttachments()));
+    public ResponseEntity<ApiResponse<List<TransitGatewayAttachmentDto>>> getAttachments() {
+        return ResponseEntity.ok(ApiResponse.ok("TGW attachments fetched successfully", tgwService.getAttachments()));
     }
 
     @GetMapping("/routes")
-    public ResponseEntity<ApiResponse<List<TgwRoute>>> getRoutes() {
-        return ResponseEntity.ok(ApiResponse.ok(tgwService.getRoutes()));
+    public ResponseEntity<ApiResponse<List<TransitGatewayRouteDto>>> getRoutes() {
+        return ResponseEntity.ok(ApiResponse.ok("TGW routes fetched successfully", tgwService.getRoutes()));
     }
 }

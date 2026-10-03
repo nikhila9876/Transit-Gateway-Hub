@@ -1,31 +1,15 @@
 package com.cloudnexus.service;
 
-import com.cloudnexus.model.TransitGateway;
-import com.cloudnexus.model.TgwAttachment;
-import com.cloudnexus.model.TgwRoute;
-import com.cloudnexus.repository.MockDataStore;
-import org.springframework.stereotype.Service;
-
+import com.cloudnexus.dto.TransitGatewayAttachmentDto;
+import com.cloudnexus.dto.TransitGatewayDto;
+import com.cloudnexus.dto.TransitGatewayRouteDto;
 import java.util.List;
 
-@Service
-public class TransitGatewayService {
-
-    private final MockDataStore dataStore;
-
-    public TransitGatewayService(MockDataStore dataStore) {
-        this.dataStore = dataStore;
-    }
-
-    public TransitGateway getTransitGateway() {
-        return dataStore.getTransitGateway();
-    }
-
-    public List<TgwAttachment> getAttachments() {
-        return dataStore.getTgwAttachments();
-    }
-
-    public List<TgwRoute> getRoutes() {
-        return dataStore.getTgwRoutes();
-    }
+/**
+ * Service contract for AWS Transit Gateway hub inspection.
+ */
+public interface TransitGatewayService {
+    TransitGatewayDto getTransitGateway();
+    List<TransitGatewayAttachmentDto> getAttachments();
+    List<TransitGatewayRouteDto> getRoutes();
 }
