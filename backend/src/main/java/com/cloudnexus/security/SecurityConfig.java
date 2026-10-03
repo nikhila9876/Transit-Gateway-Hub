@@ -1,5 +1,8 @@
 package com.cloudnexus.security;
 
+import com.cloudnexus.dto.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,15 +15,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +27,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
@@ -37,8 +36,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Plaintext encoder for development / mock phase credentials
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -60,15 +58,50 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write(
+                                    objectMapper.writeValueAsString(
+                                            ApiResponse.error("Unauthorized: Full authentication is required to access this resource", request.getRequestURI())
+                                    )
+                            );
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write(
+                                    objectMapper.writeValueAsString(
+                                            ApiResponse.error("Access denied: You do not have permission to access this resource", request.getRequestURI())
+                                    )
+                            );
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
-                        // Public auth endpoint
+                        // Public auth and error endpoints
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Public read endpoints for dashboard and health
-                        .requestMatchers(HttpMethod.GET, "/api/dashboard/**").permitAll()
-                        // Allow GET endpoints for demo & read-only console viewer
-                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
-                        // Testing & AI actions allow authenticated or demo users
-                        .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+
+                        // Protected endpoints: explicitly configured per requirements
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/vpcs/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/transit-gateway/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/route-tables/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/ec2/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/security/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/monitoring/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/audit/**").hasAnyRole("ADMIN", "VIEWER")
+
+                        // Operational endpoints (network test & AI analyze) accessible to authorized roles
+                        .requestMatchers(HttpMethod.POST, "/api/network/test").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.POST, "/api/ai/analyze").hasAnyRole("ADMIN", "VIEWER")
+
+                        // Infrastructure mutation operations restricted to ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

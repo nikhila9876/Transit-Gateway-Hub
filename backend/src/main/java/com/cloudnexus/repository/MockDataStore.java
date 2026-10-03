@@ -27,9 +27,12 @@ public class MockDataStore {
         initAuditLogs();
     }
 
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder =
+            new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+
     private void initUsers() {
-        userMap.put("admin", new User("usr-1", "admin", "Admin@123", Set.of(Role.ROLE_ADMIN, Role.ROLE_VIEWER)));
-        userMap.put("viewer", new User("usr-2", "viewer", "Viewer@123", Set.of(Role.ROLE_VIEWER)));
+        userMap.put("admin", new User("usr-1", "admin", passwordEncoder.encode("Admin@123"), Set.of(Role.ROLE_ADMIN, Role.ROLE_VIEWER)));
+        userMap.put("viewer", new User("usr-2", "viewer", passwordEncoder.encode("Viewer@123"), Set.of(Role.ROLE_VIEWER)));
     }
 
     private void initVpcs() {

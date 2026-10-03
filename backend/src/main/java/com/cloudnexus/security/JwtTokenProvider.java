@@ -8,15 +8,15 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class JwtTokenProvider {
+@Service
+public class JwtTokenProvider implements JwtService {
 
     private final SecretKey key;
     private final long expirationMs;
@@ -29,6 +29,7 @@ public class JwtTokenProvider {
         this.expirationMs = expirationMs;
     }
 
+    @Override
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
         Date now = new Date();
@@ -47,6 +48,22 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    @Override
+    public String generateToken(String username, String role) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expirationMs);
+        String normalizedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        return Jwts.builder()
+                .subject(username)
+                .claim("roles", List.of(normalizedRole))
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key)
+                .compact();
+    }
+
+    @Override
     public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(key)
@@ -56,6 +73,7 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
+    @Override
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -68,6 +86,7 @@ public class JwtTokenProvider {
         }
     }
 
+    @Override
     public long getExpirationMs() {
         return expirationMs;
     }

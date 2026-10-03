@@ -3,7 +3,7 @@ package com.cloudnexus.controller;
 import com.cloudnexus.dto.ApiResponse;
 import com.cloudnexus.dto.LoginRequest;
 import com.cloudnexus.dto.LoginResponse;
-import com.cloudnexus.security.JwtTokenProvider;
+import com.cloudnexus.security.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider tokenProvider;
+    private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider) {
+    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService) {
         this.authenticationManager = authenticationManager;
-        this.tokenProvider = tokenProvider;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
@@ -30,19 +30,20 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
-        String token = tokenProvider.generateToken(authentication);
+        String token = jwtService.generateToken(authentication);
 
         String role = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(a -> a.startsWith("ROLE_ADMIN"))
+                .filter(a -> a.contains("ADMIN"))
                 .findFirst()
-                .orElse("ROLE_VIEWER");
+                .map(a -> a.replace("ROLE_", ""))
+                .orElse("VIEWER");
 
         LoginResponse loginResponse = new LoginResponse(
                 token,
                 authentication.getName(),
                 role,
-                tokenProvider.getExpirationMs()
+                jwtService.getExpirationMs()
         );
 
         return ResponseEntity.ok(ApiResponse.ok("Login successful", loginResponse));
