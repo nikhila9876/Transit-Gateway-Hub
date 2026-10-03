@@ -48,12 +48,12 @@ The Transit Gateway acts as a central networking hub, allowing the three VPCs to
 ## 🏗️ Architecture
 
 <p align="center">
-  <img src="screenshots/architecture-overview.png"
-       alt="AWS Transit Gateway Architecture"
+  <img src="screenshots/transit-gateway.png"
+       alt="AWS Transit Gateway Configuration"
        width="95%">
 </p>
 
-### Network Architecture
+### 🌐 Network Architecture
 
 ```text
                          ┌─────────────────────────┐
@@ -71,5 +71,5 @@ The Transit Gateway acts as a central networking hub, allowing the three VPCs to
           └──────┬──────┘      └──────┬──────┘      └──────┬──────┘
                  │                    │                    │
                  ▼                    ▼                    ▼
-            EC2-DEV              EC2-STAGE             EC2-PROD
-            10.0.1.77            20.0.1.187            30.0.1.235
+             EC2-DEV              EC2-STAGE             EC2-PROD
+             10.0.1.77             20.0.1.187             30.0.1.235
