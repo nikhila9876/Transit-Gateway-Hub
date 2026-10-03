@@ -7,6 +7,8 @@ spring:
 
 # CloudNexus Platform Configuration
 cloudnexus:
+  data-source: ${CLOUDNEXUS_DATA_SOURCE:aws} # aws | mock
+
   jwt:
     # 256-bit base64-encoded secret for development/mock phase
     secret: ${JWT_SECRET:c2VjdXJlX2Nsb3VkbmV4dXNfZW50ZXJwcmlzZV9qd3Rfc2VjcmV0X2tleV8yNTZiaXRfbWluaW11bV9sZW5ndGg=}

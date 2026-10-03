@@ -4,6 +4,7 @@ import com.cloudnexus.dto.VpcDetailsDto;
 import com.cloudnexus.dto.VpcDto;
 import com.cloudnexus.model.Vpc;
 import com.cloudnexus.repository.MockDataStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
  * Mock implementation of {@link VpcService} backed by the simulated development datastore.
  */
 @Service
+@ConditionalOnProperty(name = "cloudnexus.data-source", havingValue = "mock")
 public class MockVpcService implements VpcService {
 
     private final MockDataStore dataStore;
