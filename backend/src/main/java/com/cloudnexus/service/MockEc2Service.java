@@ -3,6 +3,7 @@ package com.cloudnexus.service;
 import com.cloudnexus.dto.Ec2InstanceDto;
 import com.cloudnexus.model.Ec2Instance;
 import com.cloudnexus.repository.MockDataStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
  * Mock implementation of {@link Ec2Service}.
  */
 @Service
+@ConditionalOnProperty(name = "cloudnexus.data-source", havingValue = "mock")
 public class MockEc2Service implements Ec2Service {
 
     private final MockDataStore dataStore;
