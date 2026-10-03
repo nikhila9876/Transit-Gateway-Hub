@@ -1,6 +1,7 @@
 package com.cloudnexus.service;
 
 import com.cloudnexus.dto.MonitoringDto;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -12,6 +13,7 @@ import java.util.Map;
  * Emits structured mock metrics with realistic latencies and health percentages.
  */
 @Service
+@ConditionalOnProperty(name = "cloudnexus.data-source", havingValue = "mock")
 public class MockMonitoringService implements MonitoringService {
 
     @Override
