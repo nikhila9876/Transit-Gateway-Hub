@@ -4,24 +4,39 @@ import DataTable from '../components/common/DataTable';
 import StatusBadge from '../components/common/StatusBadge';
 import StatCard from '../components/common/StatCard';
 import LoadingState from '../components/common/LoadingState';
+import ErrorState from '../components/common/ErrorState';
 import { transitGatewayService } from '../services/transitGatewayService';
 import { Share2, Network, GitFork, Route, CheckCircle, ArrowRight } from 'lucide-react';
 
 export const TransitGatewayPage = () => {
   const [tgw, setTgw] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [routes, setRoutes] = useState([]);
   const [activeTab, setActiveTab] = useState('Overview');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchTgwData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [tgwRes, attachRes, routeRes] = await Promise.all([
+        transitGatewayService.getTransitGateway(),
+        transitGatewayService.getAttachments(),
+        transitGatewayService.getRoutes(),
+      ]);
+      setTgw(tgwRes);
+      setAttachments(Array.isArray(attachRes) ? attachRes : tgwRes?.attachments || []);
+      setRoutes(Array.isArray(routeRes) ? routeRes : tgwRes?.routes || []);
+    } catch (err) {
+      setError(err.message || 'Failed to load Transit Gateway information');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const data = await transitGatewayService.getTransitGateway();
-        setTgw(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
+    fetchTgwData();
   }, []);
 
   const attachmentColumns = [
@@ -100,6 +115,7 @@ export const TransitGatewayPage = () => {
   ];
 
   if (loading) return <LoadingState message="Loading Transit Gateway Hub topology..." />;
+  if (error) return <ErrorState message={error} onRetry={fetchTgwData} />;
 
   return (
     <div className="space-y-6">
@@ -178,7 +194,7 @@ export const TransitGatewayPage = () => {
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              {tab} {tab === 'Attachments' ? `(${tgw?.attachments?.length || 3})` : tab === 'Routes' ? `(${tgw?.routes?.length || 3})` : ''}
+              {tab} {tab === 'Attachments' ? `(${attachments.length || tgw?.attachments?.length || 0})` : tab === 'Routes' ? `(${routes.length || tgw?.routes?.length || 0})` : ''}
             </button>
           ))}
         </div>
@@ -240,7 +256,7 @@ export const TransitGatewayPage = () => {
                   <p className="text-xs text-slate-500">Dedicated network interface attachments linking spoke VPCs to the hub.</p>
                 </div>
               </div>
-              <DataTable columns={attachmentColumns} data={tgw?.attachments || []} />
+              <DataTable columns={attachmentColumns} data={attachments.length > 0 ? attachments : (tgw?.attachments || [])} />
             </div>
           )}
 
@@ -253,7 +269,7 @@ export const TransitGatewayPage = () => {
                   <p className="text-xs text-slate-500">Global hub routing rules across all attached CIDR blocks.</p>
                 </div>
               </div>
-              <DataTable columns={routeColumns} data={tgw?.routes || []} />
+              <DataTable columns={routeColumns} data={routes.length > 0 ? routes : (tgw?.routes || [])} />
             </div>
           )}
         </div>

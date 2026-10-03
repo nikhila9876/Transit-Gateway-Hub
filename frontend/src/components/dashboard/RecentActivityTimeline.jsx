@@ -51,7 +51,17 @@ const ACTIVITIES = [
   },
 ];
 
-export const RecentActivityTimeline = () => {
+export const RecentActivityTimeline = ({ activities }) => {
+  const displayItems = Array.isArray(activities) && activities.length > 0
+    ? activities.map((item, idx) => ({
+        id: item.id || idx,
+        title: item.action ? `${item.action.replace(/_/g, ' ')} (${item.resource || 'TGW'})` : (item.title || 'System Event'),
+        time: item.timestamp || item.time || 'Recent',
+        icon: item.action?.includes('SECURITY') ? ShieldAlert : item.action?.includes('CONNECTIVITY') ? Activity : RefreshCw,
+        color: item.action?.includes('SECURITY') ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-blue-600 bg-blue-50 border-blue-200',
+      }))
+    : ACTIVITIES;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
@@ -60,7 +70,7 @@ export const RecentActivityTimeline = () => {
       </div>
 
       <div className="space-y-4">
-        {ACTIVITIES.map((act) => {
+        {displayItems.map((act) => {
           const Icon = act.icon;
           return (
             <div key={act.id} className="flex items-start gap-3 group">

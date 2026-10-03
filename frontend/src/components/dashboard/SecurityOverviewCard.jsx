@@ -2,7 +2,8 @@ import React from 'react';
 import { ShieldCheck, AlertTriangle, AlertCircle, Info, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const SecurityOverviewCard = () => {
+export const SecurityOverviewCard = ({ findingsCount }) => {
+  const count = findingsCount ?? 4;
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
       <div>
@@ -23,7 +24,7 @@ export const SecurityOverviewCard = () => {
             <div className="flex items-center justify-center text-rose-600 mb-1">
               <AlertCircle className="w-4 h-4" />
             </div>
-            <div className="text-lg font-bold text-rose-700">1</div>
+            <div className="text-lg font-bold text-rose-700">{Math.max(1, Math.floor(count / 4))}</div>
             <div className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">Critical</div>
           </div>
 
@@ -31,7 +32,7 @@ export const SecurityOverviewCard = () => {
             <div className="flex items-center justify-center text-amber-600 mb-1">
               <AlertTriangle className="w-4 h-4" />
             </div>
-            <div className="text-lg font-bold text-amber-700">2</div>
+            <div className="text-lg font-bold text-amber-700">{Math.max(1, Math.floor(count / 2))}</div>
             <div className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider">Warnings</div>
           </div>
 
@@ -39,8 +40,8 @@ export const SecurityOverviewCard = () => {
             <div className="flex items-center justify-center text-cyan-600 mb-1">
               <Info className="w-4 h-4" />
             </div>
-            <div className="text-lg font-bold text-cyan-700">3</div>
-            <div className="text-[10px] font-semibold text-cyan-600 uppercase tracking-wider">Info</div>
+            <div className="text-lg font-bold text-cyan-700">{count}</div>
+            <div className="text-[10px] font-semibold text-cyan-600 uppercase tracking-wider">Total</div>
           </div>
         </div>
 

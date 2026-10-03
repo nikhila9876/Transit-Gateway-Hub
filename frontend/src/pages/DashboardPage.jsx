@@ -199,8 +199,8 @@ export const DashboardPage = () => {
 
       {/* Bottom Row: Recent Activity, Security Overview & AI Insight Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <RecentActivityTimeline />
-        <SecurityOverviewCard />
+        <RecentActivityTimeline activities={summary?.recentActivity} />
+        <SecurityOverviewCard findingsCount={summary?.securityFindings} />
         <AiInsightCard />
       </div>
 

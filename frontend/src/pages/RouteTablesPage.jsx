@@ -4,6 +4,7 @@ import DataTable from '../components/common/DataTable';
 import SearchBar from '../components/common/SearchBar';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingState from '../components/common/LoadingState';
+import ErrorState from '../components/common/ErrorState';
 import { routeTableService } from '../services/routeTableService';
 import { GitFork, Network, ChevronRight, Layers, ArrowRight } from 'lucide-react';
 
@@ -14,21 +15,32 @@ export const RouteTablesPage = () => {
   const [selectedState, setSelectedState] = useState('All');
   const [selectedRt, setSelectedRt] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchRouteTables = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await routeTableService.getRouteTables();
+      const safeData = Array.isArray(data)
+        ? data.map((rt) => ({
+            ...rt,
+            associations: rt.associatedSubnets || rt.associations || [],
+          }))
+        : [];
+      setRouteTables(safeData);
+      if (safeData.length > 0) {
+        setSelectedRt(safeData[0]);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load route tables');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const data = await routeTableService.getRouteTables();
-        const safeData = Array.isArray(data) ? data : [];
-        setRouteTables(safeData);
-        if (safeData.length > 0) {
-          setSelectedRt(safeData[0]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
+    fetchRouteTables();
   }, []);
 
   const safeRouteTables = Array.isArray(routeTables) ? routeTables : [];
@@ -131,6 +143,7 @@ export const RouteTablesPage = () => {
   ];
 
   if (loading) return <LoadingState message="Fetching VPC route tables..." />;
+  if (error) return <ErrorState message={error} onRetry={fetchRouteTables} />;
 
   return (
     <div className="space-y-6">

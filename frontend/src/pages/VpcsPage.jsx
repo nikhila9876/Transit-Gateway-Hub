@@ -4,6 +4,7 @@ import DataTable from '../components/common/DataTable';
 import SearchBar from '../components/common/SearchBar';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingState from '../components/common/LoadingState';
+import ErrorState from '../components/common/ErrorState';
 import VpcDetailModal from '../components/network/VpcDetailModal';
 import { vpcService } from '../services/vpcService';
 import { Layers, Server, Eye, Filter } from 'lucide-react';
@@ -16,19 +17,37 @@ export const VpcsPage = () => {
   const [selectedEnv, setSelectedEnv] = useState('All');
   const [selectedVpc, setSelectedVpc] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchVpcs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await vpcService.getVpcs();
+      setVpcs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err.message || 'Failed to load VPCs');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const data = await vpcService.getVpcs();
-        setVpcs(Array.isArray(data) ? data : []);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
+    fetchVpcs();
   }, []);
+
+  const handleVpcClick = async (row) => {
+    setSelectedVpc(row);
+    setIsModalOpen(true);
+    try {
+      const fullDetails = await vpcService.getVpcById(row.id);
+      if (fullDetails) {
+        setSelectedVpc(fullDetails);
+      }
+    } catch (err) {
+      console.warn('Could not fetch full VPC details:', err.message);
+    }
+  };
 
   const safeVpcs = Array.isArray(vpcs) ? vpcs : [];
   const filteredVpcs = safeVpcs.filter((v) => {
@@ -126,6 +145,7 @@ export const VpcsPage = () => {
   ];
 
   if (loading) return <LoadingState message="Fetching VPC definitions..." />;
+  if (error) return <ErrorState message={error} onRetry={fetchVpcs} />;
 
   return (
     <div className="space-y-6">
@@ -195,10 +215,7 @@ export const VpcsPage = () => {
         <DataTable
           columns={columns}
           data={filteredVpcs}
-          onRowClick={(row) => {
-            setSelectedVpc(row);
-            setIsModalOpen(true);
-          }}
+          onRowClick={handleVpcClick}
         />
       </div>
 
