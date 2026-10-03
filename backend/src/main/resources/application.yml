@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: cloudnexus-backend
+
+# Security & JWT Configuration
+cloudnexus:
+  jwt:
+    # 256-bit base64-encoded secret for development/mock phase
+    secret: c2VjdXJlX2Nsb3VkbmV4dXNfZW50ZXJwcmlzZV9qd3Rfc2VjcmV0X2tleV8yNTZiaXRfbWluaW11bV9sZW5ndGg=
+    expiration-ms: 86400000 # 24 hours
+
+  aws:
+    region: us-east-1
+    transit-gateway-name: Enterprise-TGW
+    dev-vpc-cidr: 10.10.0.0/16
+    test-vpc-cidr: 10.20.0.0/16
+    prod-vpc-cidr: 10.30.0.0/16
+
+logging:
+  level:
+    com.cloudnexus: INFO
+    org.springframework.security: WARN
