@@ -7,6 +7,7 @@ public class ConnectivityTestRequest {
     private String destinationVpc;
     private String protocol = "TCP";
     private int port = 8080;
+    private String sourceInstanceId;
 
     public ConnectivityTestRequest() {}
 
@@ -60,4 +61,7 @@ public class ConnectivityTestRequest {
 
     public int getPort() { return port; }
     public void setPort(int port) { this.port = port; }
+
+    public String getSourceInstanceId() { return sourceInstanceId; }
+    public void setSourceInstanceId(String sourceInstanceId) { this.sourceInstanceId = sourceInstanceId; }
 }

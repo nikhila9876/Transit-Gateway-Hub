@@ -2,6 +2,7 @@ package com.cloudnexus.service;
 
 import com.cloudnexus.dto.ConnectivityTestRequest;
 import com.cloudnexus.dto.ConnectivityTestResponse;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,6 +14,7 @@ import java.util.List;
  * Explicitly identifies outputs as development mock simulation.
  */
 @Service
+@ConditionalOnProperty(name = "cloudnexus.data-source", havingValue = "mock")
 public class MockConnectivityService implements ConnectivityService {
 
     @Override
@@ -39,7 +41,14 @@ public class MockConnectivityService implements ConnectivityService {
                             "Enterprise-TGW (Central Route Table)",
                             "Prod-App-SG (DROP: Rule non-whitelisted)"
                     ),
-                    now
+                    now,
+                    "MOCK-RULE-ENGINE",
+                    "SECURITY_GROUP_BLOCK",
+                    List.of(
+                            "Review destination Security Group ingress rules in PROD VPC",
+                            "Verify traffic routing passes through TEST staging environment",
+                            "Check VPC Flow Logs for rejected TCP SYN packets"
+                    )
             );
         }
 
@@ -62,7 +71,13 @@ public class MockConnectivityService implements ConnectivityService {
                         "Enterprise-TGW Hub Route Propagation",
                         destination + " (" + destIp + ":" + port + ")"
                 ),
-                now
+                now,
+                "MOCK-RULE-ENGINE",
+                null,
+                List.of(
+                        "Verify listener process is active on target port " + port,
+                        "Monitor Transit Gateway CloudWatch bytes in/out metrics"
+                )
         );
     }
 }

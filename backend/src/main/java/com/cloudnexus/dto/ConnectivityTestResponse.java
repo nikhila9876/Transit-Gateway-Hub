@@ -15,6 +15,9 @@ public class ConnectivityTestResponse {
     private Double latencyMs;
     private List<String> path;
     private String timestamp;
+    private String diagnosticMethod;
+    private String possibleCause;
+    private List<String> recommendedChecks;
 
     public ConnectivityTestResponse() {}
 
@@ -45,6 +48,28 @@ public class ConnectivityTestResponse {
         this.latencyMs = latencyMs;
         this.path = path;
         this.timestamp = timestamp;
+    }
+
+    public ConnectivityTestResponse(String source, String destination, String protocol, int port,
+                                    String status, int statusCode, String message,
+                                    Double latencyMs, List<String> path, String timestamp,
+                                    String diagnosticMethod, String possibleCause,
+                                    List<String> recommendedChecks) {
+        this.source = source;
+        this.destination = destination;
+        this.protocol = protocol;
+        this.port = port;
+        this.status = status;
+        this.statusCode = statusCode;
+        this.message = message;
+        this.diagnosticMessage = message;
+        this.latency = latencyMs;
+        this.latencyMs = latencyMs;
+        this.path = path;
+        this.timestamp = timestamp;
+        this.diagnosticMethod = diagnosticMethod;
+        this.possibleCause = possibleCause;
+        this.recommendedChecks = recommendedChecks;
     }
 
     public String getSource() { return source; }
@@ -98,6 +123,18 @@ public class ConnectivityTestResponse {
     public List<String> getPath() { return path; }
     public void setPath(List<String> path) { this.path = path; }
 
+    public List<String> getEvidence() { return path; }
+    public void setEvidence(List<String> evidence) { this.path = evidence; }
+
     public String getTimestamp() { return timestamp; }
     public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
+
+    public String getDiagnosticMethod() { return diagnosticMethod; }
+    public void setDiagnosticMethod(String diagnosticMethod) { this.diagnosticMethod = diagnosticMethod; }
+
+    public String getPossibleCause() { return possibleCause; }
+    public void setPossibleCause(String possibleCause) { this.possibleCause = possibleCause; }
+
+    public List<String> getRecommendedChecks() { return recommendedChecks; }
+    public void setRecommendedChecks(List<String> recommendedChecks) { this.recommendedChecks = recommendedChecks; }
 }

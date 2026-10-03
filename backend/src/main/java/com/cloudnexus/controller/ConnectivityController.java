@@ -23,6 +23,6 @@ public class ConnectivityController {
     @PostMapping("/test")
     public ResponseEntity<ApiResponse<ConnectivityTestResponse>> testConnectivity(@RequestBody ConnectivityTestRequest request) {
         ConnectivityTestResponse result = connectivityService.testConnectivity(request);
-        return ResponseEntity.ok(ApiResponse.ok("Connectivity test completed (MOCK SIMULATION)", result));
+        return ResponseEntity.ok(ApiResponse.ok("Connectivity test completed", result));
     }
 }
