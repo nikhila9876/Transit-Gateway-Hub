@@ -1,48 +1,47 @@
-# Transit Gateway Hub for Three VPC Environments
+# 🚀 Transit Gateway Hub for Three VPC Environments
 
-## Project Overview
+## 📌 Project Overview
 
-This project implements a centralized AWS Transit Gateway Hub connecting three isolated VPC environments:
+This project implements a centralized **AWS Transit Gateway Hub** to provide private network connectivity between three isolated VPC environments:
 
-- DEV
-- STAGE
-- PROD
+- **DEV**
+- **STAGE**
+- **PROD**
 
-The Transit Gateway provides private network connectivity between the three VPCs without requiring VPC peering connections.
+The Transit Gateway acts as a central networking hub, allowing the three VPCs to communicate without requiring direct VPC peering connections.
 
-## Architecture
+---
 
-Three VPCs are connected through a central AWS Transit Gateway.
+## 🎯 Project Objectives
 
-### VPC Networks
+- Create three independent AWS VPC environments.
+- Connect the VPCs using a centralized AWS Transit Gateway.
+- Configure VPC attachments for DEV, STAGE, and PROD.
+- Configure Transit Gateway route propagation.
+- Configure VPC route tables for inter-VPC communication.
+- Deploy EC2 instances for connectivity testing.
+- Verify connectivity using ICMP ping.
+- Document and maintain the project using Git and GitHub.
 
-| Environment | CIDR |
-|-------------|------|
-| DEV | 10.0.0.0/16 |
-| STAGE | 20.0.0.0/16 |
-| PROD | 30.0.0.0/16 |
+---
 
-## EC2 Test Instances
+## 🏗️ Architecture
 
-| Environment | Private IP |
-|-------------|------------|
-| DEV | 10.0.1.77 |
-| STAGE | 20.0.1.187 |
-| PROD | 30.0.1.235 |
-
-## Transit Gateway
-
-Transit Gateway ID:
-
-`tgw-02169b6d98c63a137`
-
-The Transit Gateway has three VPC attachments.
-
-## Connectivity Testing
-
-Connectivity was verified using ICMP ping between the EC2 instances.
-
-Example:
-
-```bash
-ping -c 4 20.0.1.187
+```text
+                  ┌─────────────────────┐
+                  │   AWS Transit       │
+                  │      Gateway        │
+                  │     TGW Hub         │
+                  └──────────┬──────────┘
+                             │
+             ┌───────────────┼───────────────┐
+             │               │               │
+             ▼               ▼               ▼
+      ┌────────────┐  ┌────────────┐  ┌────────────┐
+      │ DEV VPC    │  │ STAGE VPC  │  │ PROD VPC   │
+      │ 10.0.0.0/16│  │20.0.0.0/16 │  │30.0.0.0/16 │
+      └─────┬──────┘  └─────┬──────┘  └─────┬──────┘
+            │                │                │
+            ▼                ▼                ▼
+       EC2-DEV          EC2-STAGE         EC2-PROD
+       10.0.1.77        20.0.1.187        30.0.1.235
