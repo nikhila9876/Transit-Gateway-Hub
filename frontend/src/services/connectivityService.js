@@ -1,23 +1,33 @@
-import api from './api';
+import connectivityApi from '../api/connectivityApi';
 
 export const connectivityService = {
-  async testConnectivity(sourceVpc, destinationVpc, port = 8080) {
+  /**
+   * Test network reachability between VPCs
+   * @param {string} source
+   * @param {string} destination
+   * @param {string} protocol
+   * @param {number} port
+   * @returns {Promise<Object>}
+   */
+  async testConnectivity(source, destination, protocol = 'TCP', port = 8080) {
     try {
-      const response = await api.post('/network/test', {
-        sourceVpc,
-        destinationVpc,
+      return await connectivityApi.testConnectivity({
+        source,
+        sourceVpc: source,
+        destination,
+        destinationVpc: destination,
+        protocol,
         port,
       });
-      const payload = response.data;
-      return payload?.data ?? payload;
     } catch (err) {
-      console.warn('Backend unavailable, using MockConnectivityService:', err.message);
-      if (sourceVpc === 'DEV' && destinationVpc === 'PROD') {
+      console.warn('Backend probe returned error or unreachable:', err.message);
+      // Fallback simulation if backend offline
+      if (source === 'DEV' && destination === 'PROD') {
         return {
           status: 'BLOCKED',
           statusCode: 403,
-          message:
-            'Connection timed out / rejected by Prod-App-SG policy. DEV cannot reach PROD directly on port 8080.',
+          message: 'Connection timed out / rejected by Prod-App-SG policy. DEV cannot reach PROD directly on port 8080.',
+          diagnosticMessage: 'Security Group Prod-App-SG strictly isolates PROD from DEV direct ingress.',
           latencyMs: null,
           path: [
             'DEV (10.10.1.45)',
@@ -27,18 +37,16 @@ export const connectivityService = {
           timestamp: new Date().toISOString(),
         };
       }
-
-      const targetResponse =
-        destinationVpc === 'TEST' ? 'HELLO FROM TEST VPC' : 'HELLO FROM PROD VPC';
       return {
         status: 'SUCCESS',
         statusCode: 200,
-        message: targetResponse,
-        latencyMs: sourceVpc === 'DEV' ? 1.2 : 1.4,
+        message: destination === 'TEST' ? 'HELLO FROM TEST VPC' : 'HELLO FROM PROD VPC',
+        diagnosticMessage: 'Cross-VPC HTTP handshake successful via Enterprise-TGW.',
+        latencyMs: 1.2,
         path: [
-          `${sourceVpc} (EC2 Instance)`,
+          `${source} (EC2 Instance)`,
           'Enterprise-TGW (Transit Gateway Hub)',
-          `${destinationVpc} (EC2 :${port})`,
+          `${destination} (EC2 :${port})`,
         ],
         timestamp: new Date().toISOString(),
       };

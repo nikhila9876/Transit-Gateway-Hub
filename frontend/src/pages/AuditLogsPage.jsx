@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import SearchBar from '../components/common/SearchBar';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingState from '../components/common/LoadingState';
+import ErrorState from '../components/common/ErrorState';
+import EmptyState from '../components/common/EmptyState';
 import { auditService } from '../services/auditService';
-import { FileText, Clock, User, Shield, Filter } from 'lucide-react';
+import { Clock, User } from 'lucide-react';
 
 export const AuditLogsPage = () => {
   const [logs, setLogs] = useState([]);
@@ -15,18 +17,24 @@ export const AuditLogsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedDate, setSelectedDate] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await auditService.getAuditLogs();
+      setLogs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err.message || 'Failed to retrieve compliance audit logs');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const data = await auditService.getAuditLogs();
-        setLogs(Array.isArray(data) ? data : []);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-  }, []);
+    fetchLogs();
+  }, [fetchLogs]);
 
   const safeLogs = Array.isArray(logs) ? logs : [];
   const filteredLogs = safeLogs.filter((log) => {
@@ -97,13 +105,33 @@ export const AuditLogsPage = () => {
 
   if (loading) return <LoadingState message="Retrieving compliance audit trail..." />;
 
+  if (error && safeLogs.length === 0) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Audit Logs"
+          subtitle="Immutable compliance trail documenting configuration changes, routing events, and administrative sessions."
+          breadcrumbs={[{ label: 'Administration' }, { label: 'Audit Logs' }]}
+        />
+        <ErrorState message={error} onRetry={fetchLogs} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Audit Logs"
-        subtitle="Immutable compliance trail documenting configuration changes, routing events, and administrative sessions."
-        breadcrumbs={[{ label: 'Administration' }, { label: 'Audit Logs' }]}
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <PageHeader
+          title="Audit Logs"
+          subtitle="Immutable compliance trail documenting configuration changes, routing events, and administrative sessions."
+          breadcrumbs={[{ label: 'Administration' }, { label: 'Audit Logs' }]}
+        />
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+            Audit API Connected
+          </span>
+        </div>
+      </div>
 
       {/* Filter and Search Bar (p2.txt: Filters: Date, User, Action, Status + Search) */}
       <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
@@ -190,7 +218,14 @@ export const AuditLogsPage = () => {
           <span className="font-semibold text-slate-800">Compliance Event Records</span>
           <span>Showing {filteredLogs.length} matching events</span>
         </div>
-        <DataTable columns={columns} data={filteredLogs} />
+        {filteredLogs.length > 0 ? (
+          <DataTable columns={columns} data={filteredLogs} />
+        ) : (
+          <EmptyState
+            title="No audit records found"
+            description="No compliance events match your current filter and search criteria."
+          />
+        )}
       </div>
     </div>
   );

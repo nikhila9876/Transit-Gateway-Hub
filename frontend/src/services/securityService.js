@@ -1,18 +1,16 @@
-import api from './api';
+import securityApi from '../api/securityApi';
 import { MOCK_SECURITY_FINDINGS } from '../data/mockData';
 
 export const securityService = {
   async getFindings() {
     try {
-      const response = await api.get('/security');
-      const payload = response.data;
-      const list = payload?.data ?? payload?.findings ?? payload;
-      if (Array.isArray(list)) {
+      const list = await securityApi.getFindings();
+      if (Array.isArray(list) && list.length > 0) {
         return list;
       }
       return MOCK_SECURITY_FINDINGS;
     } catch (err) {
-      console.warn('Backend unavailable, using MockSecurityService:', err.message);
+      console.warn('Backend unavailable, using fallback mock security findings:', err.message);
       return MOCK_SECURITY_FINDINGS;
     }
   },

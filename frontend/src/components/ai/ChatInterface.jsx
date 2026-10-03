@@ -6,13 +6,13 @@ import {
   User,
   Loader2,
   CheckCircle2,
-  AlertTriangle,
   HelpCircle,
   ArrowRight,
   ShieldCheck,
   FileSearch,
 } from 'lucide-react';
-import { SUGGESTED_QUESTIONS, getStructuredAiResponse } from '../../data/mockAi';
+import { SUGGESTED_QUESTIONS } from '../../data/mockAi';
+import { aiService } from '../../services/aiService';
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState([
@@ -32,6 +32,7 @@ export const ChatInterface = () => {
         ],
         recommendedAction:
           'Ask any question regarding cross-VPC reachability, security posture, or Transit Gateway topology.',
+        model: 'CloudNexus-MockAI-v1',
       },
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
@@ -39,7 +40,7 @@ export const ChatInterface = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSend = (textToSend) => {
+  const handleSend = async (textToSend) => {
     const query = textToSend || input;
     if (!query.trim() || loading) return;
 
@@ -54,9 +55,8 @@ export const ChatInterface = () => {
     setInput('');
     setLoading(true);
 
-    // Simulate AI reasoning delay
-    setTimeout(() => {
-      const responseData = getStructuredAiResponse(query);
+    try {
+      const responseData = await aiService.analyzeNetwork(query, { source: 'ChatInterface' });
       const aiMessage = {
         id: Date.now() + 1,
         sender: 'assistant',
@@ -65,8 +65,18 @@ export const ChatInterface = () => {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (err) {
+      const errorMessage = {
+        id: Date.now() + 1,
+        sender: 'assistant',
+        isStructured: false,
+        text: `Diagnostic error: ${err.message || 'Unable to connect to backend AI analysis service.'}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (
@@ -102,11 +112,11 @@ export const ChatInterface = () => {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-purple-200">
-              Intelligence Engine Ready
+              Diagnostic Engine Ready (Dev Mode)
             </span>
           </div>
           <p className="text-xs text-purple-100 leading-relaxed">
-            Trained on AWS Transit Gateway routing, RFC 1918 multi-account VPC segmentation, and zero-trust security postures.
+            CloudNexus-MockAI-v1 provides structured diagnostic reasoning based on simulated AWS Transit Gateway routing rules, RFC 1918 VPC segmentation, and security group isolation policies.
           </p>
         </div>
       </div>
@@ -121,11 +131,11 @@ export const ChatInterface = () => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">CloudNexus Intelligence</h3>
-              <p className="text-xs text-purple-700 font-medium">AI-powered network analysis and infrastructure guidance</p>
+              <p className="text-xs text-purple-700 font-medium">Diagnostic network analysis &amp; policy guidance (Mock Backend Engine)</p>
             </div>
           </div>
           <span className="px-2.5 py-1 bg-white border border-purple-200 rounded-full text-[11px] font-bold text-purple-700 shadow-2xs">
-            v1.0 Engine
+            CloudNexus-MockAI-v1
           </span>
         </div>
 
@@ -223,8 +233,11 @@ export const ChatInterface = () => {
                     </div>
                   )}
 
-                  <div className="text-[10px] text-slate-400 text-right pt-1">
-                    {msg.timestamp}
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-purple-50">
+                    <span className="font-mono text-purple-600 font-medium">
+                      {msg.structured?.model || 'CloudNexus-MockAI-v1'} {msg.structured?.confidence ? `(${Math.round(msg.structured.confidence * 100)}% match)` : ''}
+                    </span>
+                    <span>{msg.timestamp}</span>
                   </div>
                 </div>
               )}

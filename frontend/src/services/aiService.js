@@ -1,23 +1,36 @@
-import api from './api';
+import aiApi from '../api/aiApi';
 import { MOCK_AI_RESPONSES } from '../data/mockData';
 
 export const aiService = {
-  async analyzeNetwork(prompt) {
+  /**
+   * Submit diagnostic question and context to AI analysis API
+   * @param {string} question
+   * @param {Object} [context={}]
+   * @returns {Promise<Object>}
+   */
+  async analyzeNetwork(question, context = {}) {
     try {
-      const response = await api.post('/ai/analyze', { prompt });
-      const payload = response.data;
-      return payload?.data ?? payload;
+      return await aiApi.analyze({ question, prompt: question, context });
     } catch (err) {
-      console.warn('Backend unavailable, using MockAiService:', err.message);
-      const lower = (prompt || '').toLowerCase();
+      console.warn('Backend unavailable, using fallback mock AI diagnostic:', err.message);
+      const lower = (question || '').toLowerCase();
       const match =
         MOCK_AI_RESPONSES.find((item) => lower.includes(item.prompt.toLowerCase())) ||
         MOCK_AI_RESPONSES[0];
       return {
-        query: prompt,
+        query: question,
+        summary: match.response || 'Traffic analysis completed across Transit Gateway routes.',
+        evidence: 'DEV (10.10.0.0/16) and PROD (10.30.0.0/16) route propagation active on tgw-09e8712a34bc56df0.',
+        possibleCause: 'Security Group Prod-App-SG denies direct inbound traffic from DEV VPC CIDR.',
+        recommendedChecks: [
+          'Verify Transit Gateway route table propagation',
+          'Inspect Prod-App-SG ingress security group rules',
+          'Check Systems Manager reachability on workload instances'
+        ],
+        recommendedAction: 'Route cross-VPC calls through TEST VPC intermediary or update security group whitelist if approved.',
         analysis: match.response,
-        model: 'CloudNexus-Network-Intelligence-Engine-v1',
-        confidence: 0.98,
+        model: 'CloudNexus-Network-Architect-v1 (MOCK-SIMULATION)',
+        confidence: 0.96,
         timestamp: new Date().toISOString(),
       };
     }

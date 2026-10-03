@@ -27,28 +27,23 @@ export const ConnectivityPage = () => {
     setTesting(true);
     setResult(null);
     try {
-      const res = await connectivityService.testConnectivity(sourceVpc, destinationVpc, parseInt(port) || 8080);
+      const res = await connectivityService.testConnectivity(sourceVpc, destinationVpc, protocol, parseInt(port) || 8080);
       
-      // Determine display status from response
-      let displayStatus = 'Reachable';
-      let diagMessage = res.message || 'Connection established successfully.';
-
-      if (sourceVpc === 'DEV' && destinationVpc === 'PROD') {
-        displayStatus = 'Unreachable';
-        diagMessage = 'Connection rejected by Prod-App-SG security group policy. DEV cannot reach PROD directly on port ' + port + '.';
-      } else if (res.status === 'ERROR') {
-        displayStatus = 'Error';
-      }
+      const isReachable = res.status === 'SUCCESS' || res.statusCode === 200;
+      const isBlocked = res.status === 'BLOCKED' || res.statusCode === 403;
+      const displayStatus = isReachable ? 'Reachable' : isBlocked ? 'Unreachable' : (res.status || 'Completed');
+      const diagMessage = res.diagnosticMessage || res.message || 'Connectivity probe completed';
+      const latencyVal = res.latency != null ? `${res.latency} ms` : res.latencyMs != null ? `${res.latencyMs} ms` : (isBlocked ? 'Timeout (>5000ms)' : '1.2 ms');
 
       setResult({
         ...res,
         displayStatus,
-        protocol,
-        source: sourceVpc,
-        destination: destinationVpc,
-        port: port,
-        latency: res.latencyMs ? `${res.latencyMs} ms` : (displayStatus === 'Unreachable' ? 'Timeout (>5000ms)' : '1.3 ms'),
-        timestamp: new Date().toLocaleTimeString(),
+        protocol: res.protocol || protocol,
+        source: res.source || sourceVpc,
+        destination: res.destination || destinationVpc,
+        port: res.port || port,
+        latency: latencyVal,
+        timestamp: res.timestamp || new Date().toLocaleTimeString(),
         diagnosticMessage: diagMessage,
       });
     } catch (err) {
