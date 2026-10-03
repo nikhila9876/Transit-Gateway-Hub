@@ -66,6 +66,35 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Invalid request: " + ex.getMessage(), request.getRequestURI()));
     }
 
+    // AWS Service & Integration Errors (502 / 503)
+    @ExceptionHandler(AwsIntegrationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAwsIntegration(AwsIntegrationException ex, HttpServletRequest request) {
+        log.warn("AWS Integration error at {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error(ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(software.amazon.awssdk.awscore.exception.AwsServiceException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAwsService(software.amazon.awssdk.awscore.exception.AwsServiceException ex, HttpServletRequest request) {
+        log.warn("AWS Service exception [status {}] at {}: {}", ex.statusCode(), request.getRequestURI(),
+                ex.awsErrorDetails() != null ? ex.awsErrorDetails().errorMessage() : ex.getMessage());
+        String userMessage = "AWS service encountered an error communicating with region resources.";
+        if (ex.statusCode() == 403) {
+            userMessage = "Access denied by AWS IAM policy. Please verify AWS credentials and least-privilege permissions.";
+        } else if (ex.statusCode() == 404) {
+            userMessage = "Requested AWS resource was not found in the configured region.";
+        }
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error(userMessage, request.getRequestURI()));
+    }
+
+    @ExceptionHandler(software.amazon.awssdk.core.exception.SdkClientException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSdkClient(software.amazon.awssdk.core.exception.SdkClientException ex, HttpServletRequest request) {
+        log.warn("AWS SDK client exception at {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error("Unable to communicate with AWS SDK: credentials unavailable or network unreachable.", request.getRequestURI()));
+    }
+
     // 500 - Internal Server Error (Never expose stack traces)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex, HttpServletRequest request) {
