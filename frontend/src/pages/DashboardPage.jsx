@@ -37,8 +37,17 @@ export const DashboardPage = () => {
         vpcService.getVpcs(),
         transitGatewayService.getTransitGateway(),
       ]);
+
       setSummary(sumData);
-      setVpcs(vpcData);
+
+      // Safe normalization: guarantee vpcs is strictly an Array
+      const safeVpcs = Array.isArray(vpcData)
+        ? vpcData
+        : Array.isArray(vpcData?.data)
+        ? vpcData.data
+        : [];
+      setVpcs(safeVpcs);
+
       setTgw(tgwData);
       setLastSync('Just now');
     } catch (err) {
@@ -59,6 +68,8 @@ export const DashboardPage = () => {
 
   if (loading) return <LoadingState message="Connecting to CloudNexus network intelligence..." />;
   if (error) return <ErrorState message={error} onRetry={loadDashboard} />;
+
+  const safeVpcList = Array.isArray(vpcs) ? vpcs : [];
 
   return (
     <div className="space-y-6">
@@ -87,7 +98,7 @@ export const DashboardPage = () => {
         {/* CARD 1: Total VPCs */}
         <StatCard
           title="Total VPCs"
-          value="3"
+          value={summary?.totalVpcs ?? safeVpcList.length}
           subvalue="3 connected environments"
           icon="Layers"
           color="blue"
@@ -96,8 +107,8 @@ export const DashboardPage = () => {
         {/* CARD 2: Transit Gateway */}
         <StatCard
           title="Transit Gateway"
-          value="Available"
-          subvalue="Enterprise-TGW"
+          value={summary?.transitGatewayStatus || tgw?.state || 'Available'}
+          subvalue={summary?.transitGatewayName || tgw?.name || 'Enterprise-TGW'}
           icon="Share2"
           color="green"
         />
@@ -105,7 +116,7 @@ export const DashboardPage = () => {
         {/* CARD 3: TGW Attachments */}
         <StatCard
           title="TGW Attachments"
-          value="3"
+          value={summary?.tgwAttachments ?? (tgw?.attachments?.length || 3)}
           subvalue="All attachments active"
           icon="Network"
           color="indigo"
@@ -114,7 +125,7 @@ export const DashboardPage = () => {
         {/* CARD 4: EC2 Instances */}
         <StatCard
           title="EC2 Instances"
-          value="3"
+          value={summary?.ec2Instances ?? 3}
           subvalue="2 healthy • 1 attention"
           icon="Server"
           color="cyan"
@@ -123,7 +134,7 @@ export const DashboardPage = () => {
         {/* CARD 5: Network Health */}
         <StatCard
           title="Network Health"
-          value="94%"
+          value={`${summary?.networkHealth || 94}%`}
           subvalue="+3.2% from previous check"
           icon="Activity"
           color="green"
@@ -134,7 +145,7 @@ export const DashboardPage = () => {
         {/* CARD 6: Security Findings */}
         <StatCard
           title="Security Findings"
-          value="4"
+          value={summary?.securityFindings ?? 4}
           subvalue="1 critical • 2 warnings"
           icon="ShieldCheck"
           color="amber"
@@ -166,7 +177,7 @@ export const DashboardPage = () => {
           }
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {vpcs.map((vpc) => (
+          {safeVpcList.map((vpc) => (
             <EnvironmentOverviewCard
               key={vpc.id}
               vpc={vpc}

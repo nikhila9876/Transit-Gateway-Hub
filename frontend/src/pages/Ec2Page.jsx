@@ -15,7 +15,7 @@ export const Ec2Page = () => {
     const fetch = async () => {
       try {
         const data = await ec2Service.getInstances();
-        setInstances(data);
+        setInstances(Array.isArray(data) ? data : []);
       } finally {
         setLoading(false);
       }
@@ -113,9 +113,10 @@ export const Ec2Page = () => {
 
   if (loading) return <LoadingState message="Fetching EC2 instance inventory..." />;
 
-  const runningCount = instances.filter((i) => i.state === 'running').length;
-  const stoppedCount = instances.filter((i) => i.state === 'stopped').length;
-  const healthIssuesCount = instances.filter((i) => i.health && i.health !== 'Healthy').length;
+  const safeInstances = Array.isArray(instances) ? instances : [];
+  const runningCount = safeInstances.filter((i) => i.state === 'running').length;
+  const stoppedCount = safeInstances.filter((i) => i.state === 'stopped').length;
+  const healthIssuesCount = safeInstances.filter((i) => i.health && i.health !== 'Healthy').length;
 
   return (
     <div className="space-y-6">
@@ -177,7 +178,7 @@ export const Ec2Page = () => {
           <h3 className="text-sm font-bold text-slate-900">Workload Instances Fleet</h3>
           <span className="text-xs text-slate-400">HTTP service bound to port 8080</span>
         </div>
-        <DataTable columns={columns} data={instances} />
+        <DataTable columns={columns} data={safeInstances} />
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ export const AuditLogsPage = () => {
     const fetch = async () => {
       try {
         const data = await auditService.getAuditLogs();
-        setLogs(data);
+        setLogs(Array.isArray(data) ? data : []);
       } finally {
         setLoading(false);
       }
@@ -28,7 +28,8 @@ export const AuditLogsPage = () => {
     fetch();
   }, []);
 
-  const filteredLogs = logs.filter((log) => {
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const filteredLogs = safeLogs.filter((log) => {
     const searchTarget = `${log.action} ${log.user || log.actor} ${log.resource} ${log.details || ''}`.toLowerCase();
     const matchesSearch = searchTarget.includes(searchTerm.toLowerCase());
 

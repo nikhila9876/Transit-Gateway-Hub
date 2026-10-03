@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { useAuth } from './hooks/useAuth';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -43,48 +44,50 @@ const PublicRoute = ({ children }) => {
 
 export const App = () => {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <Routes>
-          {/* Public Auth Routes */}
-          <Route element={<AuthLayout />}>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route element={<AuthLayout />}>
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                }
+              />
+            </Route>
+
+            {/* Protected Enterprise Console Routes */}
             <Route
-              path="/login"
               element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
               }
-            />
-          </Route>
+            >
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/network-topology" element={<NetworkTopologyPage />} />
+              <Route path="/vpcs" element={<VpcsPage />} />
+              <Route path="/transit-gateway" element={<TransitGatewayPage />} />
+              <Route path="/route-tables" element={<RouteTablesPage />} />
+              <Route path="/ec2" element={<Ec2Page />} />
+              <Route path="/connectivity" element={<ConnectivityPage />} />
+              <Route path="/security" element={<SecurityPage />} />
+              <Route path="/monitoring" element={<MonitoringPage />} />
+              <Route path="/ai-assistant" element={<AiAssistantPage />} />
+              <Route path="/audit-logs" element={<AuditLogsPage />} />
+            </Route>
 
-          {/* Protected Enterprise Console Routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/network-topology" element={<NetworkTopologyPage />} />
-            <Route path="/vpcs" element={<VpcsPage />} />
-            <Route path="/transit-gateway" element={<TransitGatewayPage />} />
-            <Route path="/route-tables" element={<RouteTablesPage />} />
-            <Route path="/ec2" element={<Ec2Page />} />
-            <Route path="/connectivity" element={<ConnectivityPage />} />
-            <Route path="/security" element={<SecurityPage />} />
-            <Route path="/monitoring" element={<MonitoringPage />} />
-            <Route path="/ai-assistant" element={<AiAssistantPage />} />
-            <Route path="/audit-logs" element={<AuditLogsPage />} />
-          </Route>
-
-          {/* Catch-all 404 Route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </ToastProvider>
-    </AuthProvider>
+            {/* Catch-all 404 Route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -21,7 +21,7 @@ export const SecurityPage = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
 
-  const findings = securityData.findings || [];
+  const findings = Array.isArray(securityData?.findings) ? securityData.findings : [];
 
   const filteredFindings = findings.filter((f) => {
     if (selectedFilter === 'All') return true;

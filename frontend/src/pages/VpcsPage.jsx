@@ -22,7 +22,7 @@ export const VpcsPage = () => {
     const fetch = async () => {
       try {
         const data = await vpcService.getVpcs();
-        setVpcs(data);
+        setVpcs(Array.isArray(data) ? data : []);
       } finally {
         setLoading(false);
       }
@@ -30,7 +30,8 @@ export const VpcsPage = () => {
     fetch();
   }, []);
 
-  const filteredVpcs = vpcs.filter((v) => {
+  const safeVpcs = Array.isArray(vpcs) ? vpcs : [];
+  const filteredVpcs = safeVpcs.filter((v) => {
     const matchesSearch =
       v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||

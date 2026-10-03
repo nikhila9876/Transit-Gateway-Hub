@@ -19,9 +19,10 @@ export const RouteTablesPage = () => {
     const fetch = async () => {
       try {
         const data = await routeTableService.getRouteTables();
-        setRouteTables(data);
-        if (data && data.length > 0) {
-          setSelectedRt(data[0]);
+        const safeData = Array.isArray(data) ? data : [];
+        setRouteTables(safeData);
+        if (safeData.length > 0) {
+          setSelectedRt(safeData[0]);
         }
       } finally {
         setLoading(false);
@@ -30,7 +31,8 @@ export const RouteTablesPage = () => {
     fetch();
   }, []);
 
-  const filteredRouteTables = routeTables.filter((rt) => {
+  const safeRouteTables = Array.isArray(routeTables) ? routeTables : [];
+  const filteredRouteTables = safeRouteTables.filter((rt) => {
     const matchesSearch =
       rt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rt.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
