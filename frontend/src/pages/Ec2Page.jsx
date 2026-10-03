@@ -5,6 +5,7 @@ import StatCard from '../components/common/StatCard';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingState from '../components/common/LoadingState';
 import ErrorState from '../components/common/ErrorState';
+import EmptyState from '../components/common/EmptyState';
 import { ec2Service } from '../services/ec2Service';
 import { Server, Terminal, Shield, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 
@@ -197,7 +198,14 @@ export const Ec2Page = () => {
           <h3 className="text-sm font-bold text-slate-900">Workload Instances Fleet</h3>
           <span className="text-xs text-slate-400">HTTP service bound to port 8080</span>
         </div>
-        <DataTable columns={columns} data={safeInstances} />
+        {safeInstances.length > 0 ? (
+          <DataTable columns={columns} data={safeInstances} />
+        ) : (
+          <EmptyState
+            title="No EC2 instances found"
+            description="No workload instances were found in the connected VPC environments."
+          />
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import SearchBar from '../components/common/SearchBar';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingState from '../components/common/LoadingState';
 import ErrorState from '../components/common/ErrorState';
+import EmptyState from '../components/common/EmptyState';
 import { routeTableService } from '../services/routeTableService';
 import { GitFork, Network, ChevronRight, Layers, ArrowRight } from 'lucide-react';
 
@@ -200,11 +201,18 @@ export const RouteTablesPage = () => {
           <h3 className="text-sm font-bold text-slate-900">VPC Route Tables Overview</h3>
           <span className="text-xs text-slate-400">Click a row to inspect routing rules below</span>
         </div>
-        <DataTable
-          columns={overviewColumns}
-          data={filteredRouteTables}
-          onRowClick={(row) => setSelectedRt(row)}
-        />
+        {filteredRouteTables.length > 0 ? (
+          <DataTable
+            columns={overviewColumns}
+            data={filteredRouteTables}
+            onRowClick={(row) => setSelectedRt(row)}
+          />
+        ) : (
+          <EmptyState
+            title="No route tables found"
+            description="There are no route tables matching your search and filter criteria."
+          />
+        )}
       </div>
 
       {/* Detail View of Selected Route Table (As specified in p2.txt) */}

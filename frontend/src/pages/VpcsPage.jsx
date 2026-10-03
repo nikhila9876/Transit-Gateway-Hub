@@ -5,6 +5,7 @@ import SearchBar from '../components/common/SearchBar';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingState from '../components/common/LoadingState';
 import ErrorState from '../components/common/ErrorState';
+import EmptyState from '../components/common/EmptyState';
 import VpcDetailModal from '../components/network/VpcDetailModal';
 import { vpcService } from '../services/vpcService';
 import { Layers, Server, Eye, Filter } from 'lucide-react';
@@ -17,6 +18,7 @@ export const VpcsPage = () => {
   const [selectedEnv, setSelectedEnv] = useState('All');
   const [selectedVpc, setSelectedVpc] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchVpcs = async () => {
@@ -211,13 +213,20 @@ export const VpcsPage = () => {
       </div>
 
       {/* Interactive Table with Row Click */}
-      <div className="cursor-pointer">
-        <DataTable
-          columns={columns}
-          data={filteredVpcs}
-          onRowClick={handleVpcClick}
+      {filteredVpcs.length > 0 ? (
+        <div className="cursor-pointer">
+          <DataTable
+            columns={columns}
+            data={filteredVpcs}
+            onRowClick={handleVpcClick}
+          />
+        </div>
+      ) : (
+        <EmptyState
+          title="No VPCs found"
+          description="There are no Virtual Private Clouds matching your search and filter criteria."
         />
-      </div>
+      )}
 
       {/* VPC Detail Modal */}
       <VpcDetailModal

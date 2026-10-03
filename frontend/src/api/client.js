@@ -41,9 +41,6 @@ apiClient.interceptors.response.use(
       // Dispatch custom event for React components to react without hard reload
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('cloudnexus:unauthorized', { detail: { message: userMessage } }));
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
       }
     } else if (status === 403) {
       userMessage = error.response.data?.message || 'Access denied: You do not have permission to access this resource.';
