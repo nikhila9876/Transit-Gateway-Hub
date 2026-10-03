@@ -1,38 +1,36 @@
-import api from './api';
+import authApi from '../api/authApi';
 
 export const authService = {
+  /**
+   * Performs authentication via authApi connecting to POST /api/auth/login
+   * @param {string} username
+   * @param {string} password
+   * @returns {Promise<{ token: string, username: string, role: string, tokenType: string, expiresIn: number }>}
+   */
   async login(username, password) {
     try {
-      const response = await api.post('/auth/login', { username, password });
-      return response.data;
-    } catch (error) {
-      // Mock fallback for offline or standalone frontend testing
-      if (
-        (username === 'admin' && password === 'Admin@123') ||
-        (username === 'viewer' && password === 'Viewer@123')
-      ) {
-        const role = username === 'admin' ? 'ROLE_ADMIN' : 'ROLE_VIEWER';
-        const mockAuth = {
-          token: 'mock-jwt-token-cloudnexus-session',
-          username,
-          role,
-          tokenType: 'Bearer',
-          expiresIn: 86400000
-        };
-        return mockAuth;
+      const data = await authApi.login({ username, password });
+      if (!data || !data.token) {
+        throw new Error('Authentication response did not contain a valid JWT token.');
       }
-      throw error.response?.data?.message || 'Invalid username or password';
+      return data;
+    } catch (error) {
+      const msg = error.message || error.data?.message || 'Authentication failed. Please verify credentials.';
+      throw new Error(msg);
     }
   },
 
   logout() {
-    localStorage.removeItem('cloudnexus_token');
-    localStorage.removeItem('cloudnexus_user');
+    authApi.logout();
   },
 
   getCurrentUser() {
-    const userJson = localStorage.getItem('cloudnexus_user');
-    return userJson ? JSON.parse(userJson) : null;
+    const raw = localStorage.getItem('cloudnexus_user');
+    try {
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   },
 
   getToken() {
@@ -40,6 +38,9 @@ export const authService = {
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('cloudnexus_token');
-  }
+    const token = this.getToken();
+    return !!token && token.trim().length > 0;
+  },
 };
+
+export default authService;

@@ -20,19 +20,23 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('Admin@123');
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState('');
+  const { login, authMessage } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
     try {
-      await login(username, password);
-      addToast(`Authenticated as ${username}`, 'success');
+      const user = await login(username, password);
+      addToast(`Authenticated as ${user.username} (${user.rawRole || user.role})`, 'success');
       navigate('/dashboard');
     } catch (err) {
-      addToast(typeof err === 'string' ? err : 'Authentication failed. Please verify credentials.', 'error');
+      const msg = err.message || (typeof err === 'string' ? err : 'Authentication failed. Please verify credentials.');
+      setErrorMessage(msg);
+      addToast(msg, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -41,6 +45,7 @@ export const LoginPage = () => {
   const setPresetUser = (u, p) => {
     setUsername(u);
     setPassword(p);
+    setErrorMessage('');
   };
 
   return (
@@ -136,6 +141,18 @@ export const LoginPage = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            {authMessage && !errorMessage && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
+                <Shield className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <span>{authMessage}</span>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
+                <Shield className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 Email / Username

@@ -1,41 +1,51 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = authService.getCurrentUser();
-    if (stored) return stored;
-    // Initialize default demo session so all dashboard routes are accessible immediately
-    const defaultUser = { username: 'admin', role: 'ROLE_ADMIN' };
-    localStorage.setItem('cloudnexus_user', JSON.stringify(defaultUser));
-    localStorage.setItem('cloudnexus_token', 'mock-jwt-token-cloudnexus-session');
-    return defaultUser;
-  });
-
-  const [token, setToken] = useState(() => authService.getToken() || 'mock-jwt-token-cloudnexus-session');
+  const [user, setUser] = useState(() => authService.getCurrentUser());
+  const [token, setToken] = useState(() => authService.getToken());
   const [loading, setLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState(null);
+
+  // Synchronize state if external 401 event is emitted
+  const handleUnauthorized = useCallback((e) => {
+    authService.logout();
+    setUser(null);
+    setToken(null);
+    setAuthMessage(e?.detail?.message || 'Session expired. Please log in again.');
+  }, []);
 
   useEffect(() => {
-    if (token && !user) {
-      const stored = authService.getCurrentUser();
-      if (stored) {
-        setUser(stored);
-      }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('cloudnexus:unauthorized', handleUnauthorized);
+      return () => {
+        window.removeEventListener('cloudnexus:unauthorized', handleUnauthorized);
+      };
     }
-  }, [token, user]);
+  }, [handleUnauthorized]);
 
   const login = async (username, password) => {
     setLoading(true);
+    setAuthMessage(null);
     try {
       const data = await authService.login(username, password);
+      // Backend returns role e.g. "ADMIN" or "VIEWER"
+      const normalizedRole = (data.role || 'VIEWER').toUpperCase();
+      const standardRole = normalizedRole.startsWith('ROLE_') ? normalizedRole : `ROLE_${normalizedRole}`;
+      
       const userPayload = {
         username: data.username,
-        role: data.role || 'ROLE_ADMIN'
+        role: standardRole, // ROLE_ADMIN or ROLE_VIEWER
+        rawRole: normalizedRole.replace('ROLE_', ''), // ADMIN or VIEWER
+        tokenType: data.tokenType || 'Bearer',
+        expiresIn: data.expiresIn,
       };
+
       localStorage.setItem('cloudnexus_token', data.token);
       localStorage.setItem('cloudnexus_user', JSON.stringify(userPayload));
+
       setToken(data.token);
       setUser(userPayload);
       return userPayload;
@@ -48,21 +58,28 @@ export const AuthProvider = ({ children }) => {
     authService.logout();
     setUser(null);
     setToken(null);
+    setAuthMessage(null);
   };
 
-  const isAuthenticated = !!token;
-  const isAdmin = user?.role === 'ROLE_ADMIN';
+  const isAuthenticated = Boolean(token && user);
+  const role = user?.role || (token ? 'ROLE_VIEWER' : null);
+  const isAdmin = role === 'ROLE_ADMIN' || user?.rawRole === 'ADMIN';
+  const isViewer = role === 'ROLE_VIEWER' || user?.rawRole === 'VIEWER';
 
   return (
     <AuthContext.Provider
       value={{
         user,
         token,
+        role,
         loading,
+        authMessage,
+        setAuthMessage,
         login,
         logout,
         isAuthenticated,
-        isAdmin
+        isAdmin,
+        isViewer,
       }}
     >
       {children}
