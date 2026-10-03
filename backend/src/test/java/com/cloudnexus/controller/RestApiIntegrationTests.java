@@ -194,4 +194,26 @@ public class RestApiIntegrationTests {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data", hasSize(greaterThanOrEqualTo(4))));
     }
+
+    @Test
+    @DisplayName("GET /api/network/health - returns composite network health score")
+    void testGetNetworkHealth() throws Exception {
+        mockMvc.perform(get("/api/network/health")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.overallScore").isNumber())
+                .andExpect(jsonPath("$.data.status").isString())
+                .andExpect(jsonPath("$.data.networkScore").isNumber());
+    }
+
+    @Test
+    @DisplayName("GET /api/network/flow-logs - returns VPC flow logs status")
+    void testGetFlowLogs() throws Exception {
+        mockMvc.perform(get("/api/network/flow-logs")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
+    }
 }

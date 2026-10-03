@@ -92,6 +92,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/security/**").hasAnyRole("ADMIN", "VIEWER")
                         .requestMatchers(HttpMethod.GET, "/api/monitoring/**").hasAnyRole("ADMIN", "VIEWER")
                         .requestMatchers(HttpMethod.GET, "/api/audit/**").hasAnyRole("ADMIN", "VIEWER")
+                        .requestMatchers(HttpMethod.GET, "/api/network/**").hasAnyRole("ADMIN", "VIEWER")
 
                         // Operational endpoints (network test & AI analyze) accessible to authorized roles
                         .requestMatchers(HttpMethod.POST, "/api/network/test").hasAnyRole("ADMIN", "VIEWER")
