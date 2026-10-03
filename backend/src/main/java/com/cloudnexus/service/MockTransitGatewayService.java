@@ -7,6 +7,7 @@ import com.cloudnexus.model.TgwAttachment;
 import com.cloudnexus.model.TgwRoute;
 import com.cloudnexus.model.TransitGateway;
 import com.cloudnexus.repository.MockDataStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
  * Mock implementation of {@link TransitGatewayService}.
  */
 @Service
+@ConditionalOnProperty(name = "cloudnexus.data-source", havingValue = "mock")
 public class MockTransitGatewayService implements TransitGatewayService {
 
     private final MockDataStore dataStore;
