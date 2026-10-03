@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from '../common/Modal';
 import StatusBadge from '../common/StatusBadge';
-import { Layers, Shield, Network } from 'lucide-react';
+import { Layers, Shield, Network, Server } from 'lucide-react';
 
 export const VpcDetailModal = ({ vpc, isOpen, onClose }) => {
   if (!vpc) return null;
@@ -71,6 +71,28 @@ export const VpcDetailModal = ({ vpc, isOpen, onClose }) => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* EC2 Workload Summary */}
+        <div>
+          <div className="flex items-center gap-2 mb-3 text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <Server className="w-4 h-4 text-emerald-600" />
+            <span>EC2 Workload Instances ({vpc.ec2Instances?.length || vpc.ec2Count || 1})</span>
+          </div>
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                <Server className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <span className="font-semibold text-slate-800">{vpc.name}-App-Server</span>
+                <span className="block font-mono text-[10px] text-slate-500">Port 8080 • Private IP in Subnet</span>
+              </div>
+            </div>
+            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Running
+            </span>
           </div>
         </div>
 

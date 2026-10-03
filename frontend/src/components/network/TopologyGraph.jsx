@@ -61,7 +61,7 @@ const CustomControlsBar = () => {
   );
 };
 
-export const TopologyGraphInner = ({ onNodeClick }) => {
+export const TopologyGraphInner = ({ nodes, edges, onNodeClick }) => {
   // Hub-and-Spoke layout as required in p2.txt:
   // DEV at top -> Enterprise-TGW in center -> TEST & PROD at bottom
   const initialNodes = useMemo(
@@ -229,8 +229,8 @@ export const TopologyGraphInner = ({ onNodeClick }) => {
       <CustomControlsBar />
 
       <ReactFlow
-        nodes={initialNodes}
-        edges={initialEdges}
+        nodes={nodes && nodes.length > 0 ? nodes : initialNodes}
+        edges={edges && edges.length > 0 ? edges : initialEdges}
         nodeTypes={nodeTypes}
         onNodeClick={(e, node) => onNodeClick && onNodeClick(node)}
         fitView
