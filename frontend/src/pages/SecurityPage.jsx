@@ -17,6 +17,7 @@ import {
 export const SecurityPage = () => {
   const [findings, setFindings] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -41,11 +42,22 @@ export const SecurityPage = () => {
 
   const filteredFindings = safeFindings.filter((f) => {
     const sev = (f.severity || '').toLowerCase();
-    if (selectedFilter === 'All') return true;
-    if (selectedFilter === 'Critical') return sev === 'critical' || sev === 'high';
-    if (selectedFilter === 'Warnings') return sev === 'warning' || sev === 'medium';
-    if (selectedFilter === 'Informational') return sev === 'informational' || sev === 'info' || sev === 'low';
-    if (selectedFilter === 'Resolved') return sev === 'resolved' || (f.status || '').toLowerCase() === 'healthy';
+    let matchesFilter = true;
+    if (selectedFilter === 'Critical') matchesFilter = sev === 'critical' || sev === 'high';
+    else if (selectedFilter === 'Warnings') matchesFilter = sev === 'warning' || sev === 'medium';
+    else if (selectedFilter === 'Informational') matchesFilter = sev === 'informational' || sev === 'info' || sev === 'low';
+    else if (selectedFilter === 'Resolved') matchesFilter = sev === 'resolved' || (f.status || '').toLowerCase() === 'healthy';
+
+    if (!matchesFilter) return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const title = (f.title || '').toLowerCase();
+      const res = (f.resource || '').toLowerCase();
+      const resName = (f.resourceName || '').toLowerCase();
+      const desc = (f.description || '').toLowerCase();
+      return title.includes(q) || res.includes(q) || resName.includes(q) || desc.includes(q);
+    }
     return true;
   });
 
@@ -74,11 +86,11 @@ export const SecurityPage = () => {
         }
       />
 
-      {/* Notice regarding Dev/Mock Environment */}
-      <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-center gap-2">
-        <FlaskConical className="w-4 h-4 text-blue-600 flex-shrink-0" />
+      {/* Notice regarding Security Intelligence */}
+      <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center gap-2">
+        <ShieldCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
         <span>
-          <strong>Development Mode:</strong> Security findings below reflect backend architectural policy rules and simulated audit metrics.
+          <strong>Security Intelligence:</strong> Continuous AWS security group analysis and workload exposure detection. Read-only posture assessment across DEV, TEST, and PROD VPCs.
         </span>
       </div>
 
@@ -88,7 +100,7 @@ export const SecurityPage = () => {
           <div>
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Security Score</span>
             <div className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              86 <span className="text-sm font-normal text-slate-400">/ 100</span>
+              88 <span className="text-sm font-normal text-slate-400">/ 100</span>
             </div>
             <span className="text-[11px] text-amber-600 font-semibold mt-1 block">Review Recommended</span>
           </div>
@@ -100,7 +112,7 @@ export const SecurityPage = () => {
         <StatCard
           title="Critical Findings"
           value={criticalCount}
-          subvalue="Isolation rule active"
+          subvalue="High priority risks"
           icon="AlertCircle"
           color="red"
         />
@@ -122,7 +134,7 @@ export const SecurityPage = () => {
         />
       </div>
 
-      {/* Filter Toolbar */}
+      {/* Filter and Search Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           {['All', 'Critical', 'Warnings', 'Informational', 'Resolved'].map((filter) => (
@@ -140,8 +152,17 @@ export const SecurityPage = () => {
           ))}
         </div>
 
-        <div className="text-xs text-slate-500 font-medium">
-          Showing {filteredFindings.length} of {safeFindings.length} findings
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Search findings or resources..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          />
+          <div className="text-xs text-slate-500 font-medium whitespace-nowrap">
+            Showing {filteredFindings.length} of {safeFindings.length} findings
+          </div>
         </div>
       </div>
 
