@@ -55,3 +55,22 @@ Connectivity was tested using ping between private IP addresses.
 All tested connections returned:
 
 4 packets transmitted, 4 received, 0% packet loss.
+
+## 9. Contribute Changes
+
+Create a feature branch before making changes:
+
+```bash
+git checkout -b feature/rohith-aws
+```
+
+Review and commit the changes, then push the branch:
+
+```bash
+git status
+git add .
+git commit -m "Add AWS configuration screenshots"
+git push -u origin feature/rohith-aws
+```
+
+Open a pull request from `feature/rohith-aws` into `main`. Do not push directly to `main`.
