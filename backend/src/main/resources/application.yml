@@ -1,23 +1,26 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 spring:
   application:
     name: cloudnexus-backend
 
-# Security & JWT Configuration
+# CloudNexus Platform Configuration
 cloudnexus:
   jwt:
     # 256-bit base64-encoded secret for development/mock phase
-    secret: c2VjdXJlX2Nsb3VkbmV4dXNfZW50ZXJwcmlzZV9qd3Rfc2VjcmV0X2tleV8yNTZiaXRfbWluaW11bV9sZW5ndGg=
-    expiration-ms: 86400000 # 24 hours
+    secret: ${JWT_SECRET:c2VjdXJlX2Nsb3VkbmV4dXNfZW50ZXJwcmlzZV9qd3Rfc2VjcmV0X2tleV8yNTZiaXRfbWluaW11bV9sZW5ndGg=}
+    expiration-ms: ${JWT_EXPIRATION:86400000} # 24 hours
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173}
 
   aws:
-    region: us-east-1
-    transit-gateway-name: Enterprise-TGW
-    dev-vpc-cidr: 10.10.0.0/16
-    test-vpc-cidr: 10.20.0.0/16
-    prod-vpc-cidr: 10.30.0.0/16
+    region: ${AWS_REGION:us-east-1}
+    transit-gateway-name: ${AWS_TRANSIT_GATEWAY_NAME:Enterprise-TGW}
+    dev-vpc-cidr: ${AWS_DEV_VPC_CIDR:10.10.0.0/16}
+    test-vpc-cidr: ${AWS_TEST_VPC_CIDR:10.20.0.0/16}
+    prod-vpc-cidr: ${AWS_PROD_VPC_CIDR:10.30.0.0/16}
 
 logging:
   level:
