@@ -3,6 +3,7 @@ package com.cloudnexus.service;
 import com.cloudnexus.dto.Ec2InstanceDto;
 import com.cloudnexus.dto.TransitGatewayAttachmentDto;
 import com.cloudnexus.dto.TransitGatewayDto;
+import com.cloudnexus.dto.VpcDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -96,6 +97,21 @@ public class AwsNetworkFlowService implements NetworkFlowService {
         int securityScore = 85;
         int monitoringScore = 90;
         List<String> reasons = new ArrayList<>();
+
+        // 0. VPC health
+        try {
+            List<VpcDto> vpcs = vpcService.getAllVpcs();
+            if (vpcs != null && !vpcs.isEmpty()) {
+                long availableVpcs = vpcs.stream().filter(v -> "available".equalsIgnoreCase(v.getState())).count();
+                if (availableVpcs == vpcs.size()) {
+                    reasons.add("All " + vpcs.size() + " enterprise VPCs are in AVAILABLE state.");
+                } else {
+                    reasons.add(availableVpcs + "/" + vpcs.size() + " enterprise VPCs available.");
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Health check: unable to inspect VPCs: {}", e.getMessage());
+        }
 
         // 1. Transit Gateway health
         try {

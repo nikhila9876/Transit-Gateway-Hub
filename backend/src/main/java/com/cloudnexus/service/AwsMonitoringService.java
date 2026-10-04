@@ -1,7 +1,6 @@
 package com.cloudnexus.service;
 
 import com.cloudnexus.dto.MonitoringDto;
-import com.cloudnexus.exception.AwsIntegrationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

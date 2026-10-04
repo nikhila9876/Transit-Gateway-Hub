@@ -1,7 +1,6 @@
 package com.cloudnexus.service;
 
 import com.cloudnexus.dto.DashboardSummaryDto;
-import com.cloudnexus.model.AuditLog;
 import com.cloudnexus.model.TransitGateway;
 import com.cloudnexus.model.Vpc;
 import com.cloudnexus.repository.MockDataStore;

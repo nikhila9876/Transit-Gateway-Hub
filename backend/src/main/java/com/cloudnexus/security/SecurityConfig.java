@@ -58,9 +58,8 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder());
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
@@ -96,7 +95,8 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public auth and error endpoints
+                        // Public auth, health, error, and CORS preflight endpoints
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health", "/api/health/**").permitAll()
                         .requestMatchers("/error").permitAll()
