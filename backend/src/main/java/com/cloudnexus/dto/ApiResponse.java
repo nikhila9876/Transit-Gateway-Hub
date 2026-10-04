@@ -9,6 +9,9 @@ public class ApiResponse<T> {
     private T data;
     private long timestamp;
     private String path;
+    private String correlationId;
+    private Integer status;
+    private String method;
 
     public ApiResponse() {
         this.timestamp = System.currentTimeMillis();
@@ -47,6 +50,22 @@ public class ApiResponse<T> {
         return resp;
     }
 
+    public static <T> ApiResponse<T> error(String message, String path, String correlationId) {
+        ApiResponse<T> resp = new ApiResponse<>(false, message, null);
+        resp.setPath(path);
+        resp.setCorrelationId(correlationId);
+        return resp;
+    }
+
+    public static <T> ApiResponse<T> error(String message, String path, String correlationId, Integer status, String method) {
+        ApiResponse<T> resp = new ApiResponse<>(false, message, null);
+        resp.setPath(path);
+        resp.setCorrelationId(correlationId);
+        resp.setStatus(status);
+        resp.setMethod(method);
+        return resp;
+    }
+
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
 
@@ -61,4 +80,13 @@ public class ApiResponse<T> {
 
     public String getPath() { return path; }
     public void setPath(String path) { this.path = path; }
+
+    public String getCorrelationId() { return correlationId; }
+    public void setCorrelationId(String correlationId) { this.correlationId = correlationId; }
+
+    public Integer getStatus() { return status; }
+    public void setStatus(Integer status) { this.status = status; }
+
+    public String getMethod() { return method; }
+    public void setMethod(String method) { this.method = method; }
 }

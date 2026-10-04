@@ -81,6 +81,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public auth and error endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/health", "/api/health/**").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         // Protected endpoints: explicitly configured per requirements

@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -215,5 +216,49 @@ public class RestApiIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /api/health - public health endpoint returns application UP and aws status without auth")
+    void testGetApplicationHealth() throws Exception {
+        mockMvc.perform(get("/api/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.application").value("UP"))
+                .andExpect(jsonPath("$.aws").isString())
+                .andExpect(jsonPath("$.timestamp").isString());
+    }
+
+    @Test
+    @DisplayName("Observability - Correlation ID header is preserved and returned in responses")
+    void testCorrelationIdHeader() throws Exception {
+        String testCorrelationId = "test-correlation-xyz-789";
+        mockMvc.perform(get("/api/health")
+                        .header("X-Correlation-ID", testCorrelationId))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Correlation-ID", testCorrelationId));
+    }
+
+    @Test
+    @DisplayName("GET /api/audit with filters - filters logs by action and status")
+    void testAuditFiltering() throws Exception {
+        mockMvc.perform(get("/api/audit")
+                        .param("status", "SUCCESS")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    @DisplayName("Global error observability - returns correlation ID and safe message on errors")
+    void testErrorObservability() throws Exception {
+        mockMvc.perform(get("/api/vpcs/vpc-does-not-exist")
+                        .header("Authorization", adminToken)
+                        .header("X-Correlation-ID", "err-trace-123"))
+                .andExpect(status().isNotFound())
+                .andExpect(header().string("X-Correlation-ID", "err-trace-123"))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.correlationId").value("err-trace-123"))
+                .andExpect(jsonPath("$.path").value("/api/vpcs/vpc-does-not-exist"));
     }
 }
