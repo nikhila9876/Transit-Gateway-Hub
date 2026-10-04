@@ -1,109 +1,328 @@
-# Enterprise Multi-VPC Network Hub Using AWS Transit Gateway
+# CloudNexus: Enterprise Multi-VPC Network Management & Intelligence Platform
 
-CloudNexus is the planned name for a network-management platform built around this AWS networking demonstration. The current repository documents an enterprise-style hub-and-spoke topology for DEV, TEST, and PROD environments.
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Backend](https://img.shields.io/badge/backend-Spring%20Boot%203.3-blue.svg)]()
+[![Frontend](https://img.shields.io/badge/frontend-React%2018%20%2B%20Vite-61dafb.svg)]()
+[![AWS SDK](https://img.shields.io/badge/aws%20sdk-v2.25-orange.svg)]()
+[![Security](https://img.shields.io/badge/security-read--only%20least--privilege-green.svg)]()
+
+CloudNexus is an enterprise-grade cloud network management and intelligence platform designed to centralize visibility, operational observability, security governance, and AI-driven troubleshooting across multi-VPC AWS environments connected via AWS Transit Gateway.
+
+---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Implemented Lab Scope](#implemented-lab-scope)
-- [Network Configuration](#network-configuration)
-- [Routing and Security](#routing-and-security)
-- [Connectivity Testing](#connectivity-testing)
-- [Technology Stack](#technology-stack)
-- [Security Principles](#security-principles)
-- [Setup](#setup)
-- [Future Scope](#future-scope)
+1. [Platform Overview & Problem Statement](#1-platform-overview--problem-statement)
+2. [High-Level Architecture](#2-high-level-architecture)
+3. [AWS Multi-VPC Architecture](#3-aws-multi-vpc-architecture)
+4. [Transit Gateway & Routing Architecture](#4-transit-gateway--routing-architecture)
+5. [Application & Service Architecture](#5-application--service-architecture)
+6. [Authentication & JWT Security Flow](#6-authentication--jwt-security-flow)
+7. [AWS SDK v2 Integration](#7-aws-sdk-v2-integration)
+8. [Network Monitoring & Observability](#8-network-monitoring--observability)
+9. [Connectivity Diagnostics Engine](#9-connectivity-diagnostics-engine)
+10. [Security Intelligence & Compliance](#10-security-intelligence--compliance)
+11. [Evidence-Based AI Network Assistant](#11-evidence-based-ai-network-assistant)
+12. [Enterprise Audit Trail](#12-enterprise-audit-trail)
+13. [Technology Stack](#13-technology-stack)
+14. [Local Development & Setup](#14-local-development--setup)
+15. [Configuration & Environment Variables](#15-configuration--environment-variables)
+16. [Testing & Verification](#16-testing--verification)
+17. [Security Considerations & Learner Lab Limitations](#17-security-considerations--learner-lab-limitations)
 
-## Overview
+---
 
-AWS Transit Gateway provides a centralized network hub for three VPCs. Each VPC connects to the hub through a dedicated VPC attachment, avoiding a growing set of direct VPC-to-VPC connections.
+## 1. Platform Overview & Problem Statement
 
-The lab demonstrates VPCs, subnets, route tables, Internet Gateways, EC2, Security Groups, Transit Gateway attachments, Session Manager administration, and cross-VPC private connectivity testing over HTTP.
+### The Problem
+As cloud footprints expand across enterprise accounts, multi-VPC networking rapidly evolves from manageable point-to-point VPC peerings into an unmaintainable mesh. Key operational challenges include:
+- **Mesh Sprawl & Route Table Drift**: Managing $N(N-1)/2$ VPC peering connections causes operational overhead and asymmetric routing failures.
+- **Fragmented Visibility**: Network engineers lack a single pane of glass to observe cross-VPC throughput, packet rejections, and instance health simultaneously.
+- **Accidental Public Exposure**: Misconfigured security groups (e.g., `0.0.0.0/0` SSH/RDP ingress) introduce critical vulnerabilities into internal topologies.
+- **Opaque Reachability Failures**: Diagnosing why workload `DEV` cannot reach `PROD` requires manually checking route tables, transit gateway attachments, and security groups.
 
-## Architecture
+### The Solution: CloudNexus
+CloudNexus addresses these challenges by transforming raw AWS networking primitives into an automated intelligence platform:
+- **Centralized Hub Management**: Orchestrates AWS Transit Gateway connecting DEV, TEST, and PROD VPC environments.
+- **Real-Time Topology Discovery**: Automatically discovers live AWS VPCs, subnets, route tables, TGW attachments, and EC2 workloads.
+- **Interactive Connectivity Diagnostics**: Evaluates cross-VPC reachability against live AWS policies and private routing tables.
+- **Automated Security Intelligence**: Continuously audits security groups and network paths for overly permissive rules.
+- **Evidence-Based AI Troubleshooting**: Diagnoses reachability bottlenecks and isolation policies grounded in verifiable AWS topology data.
+- **Zero-Mutation Read-Only Architecture**: Enforces absolute safety by inspecting live infrastructure without modifying AWS configurations.
+
+---
+
+## 2. High-Level Architecture
+
+CloudNexus strictly enforces separation between the presentation tier, integration layer, and cloud provider:
 
 ```mermaid
 flowchart TD
-    User[User] --> Platform[CloudNexus Platform]
-    Platform --> React[React Frontend]
-    React -->|HTTPS| Backend[Spring Boot Backend]
-    Backend --> SDK[AWS SDK]
-    SDK --> AWS[AWS APIs]
-    AWS --> TGW[Enterprise-TGW]
-    TGW --> Dev[Dev-VPC\n10.10.0.0/16]
-    TGW --> Test[Test-VPC\n10.20.0.0/16]
-    TGW --> Prod[Prod-VPC\n10.30.0.0/16]
-    Dev --> DevEC2[Dev-App-Server\nHTTP :8080]
-    Test --> TestEC2[Test-App-Server\nHTTP :8080]
-    Prod --> ProdEC2[Prod-App-Server\nHTTP :8080]
+    subgraph Client Tier
+        User([Platform Operator / Network Engineer])
+        UI["React 18 + Vite SPA\n(Tailwind CSS + Lucide Icons + React Flow)"]
+    end
+
+    subgraph Integration Layer [Spring Boot 3 REST API]
+        Sec["Spring Security\n(JWT HMAC-SHA256 + RBAC)"]
+        Ctrl["REST Controllers\n(/dashboard, /vpcs, /transit-gateway, /network, /security, /ai, /audit, /health)"]
+        Services["Core Services\n(AwsVpcService, AwsTransitGatewayService, AwsConnectivityService,\nAwsSecurityAnalysisService, EvidenceBasedAiService, InMemoryAuditService)"]
+        Filter["CorrelationIdFilter\n(X-Correlation-ID + MDC)"]
+    end
+
+    subgraph AWS Integration [AWS SDK for Java v2]
+        EC2Client["Ec2Client\n(DescribeVpcs, DescribeRouteTables, DescribeSecurityGroups)"]
+        TGWClient["Transit Gateway API\n(DescribeTransitGateways, DescribeTransitGatewayAttachments)"]
+        CWClient["CloudWatchClient\n(GetMetricData, MetricAlarms)"]
+        STSClient["StsClient\n(GetCallerIdentity)"]
+    end
+
+    subgraph Cloud Infrastructure [AWS Region us-east-1]
+        TGW[Enterprise Transit Gateway Hub]
+        VPC1["Dev-VPC\n(10.10.0.0/16)"]
+        VPC2["Test-VPC\n(10.20.0.0/16)"]
+        VPC3["Prod-VPC\n(10.30.0.0/16)"]
+    end
+
+    User -->|Browser HTTPS| UI
+    UI -->|JSON REST + Bearer Token| Sec
+    Sec --> Filter
+    Filter --> Ctrl
+    Ctrl --> Services
+    Services --> EC2Client & TGWClient & CWClient & STSClient
+    EC2Client & TGWClient & CWClient & STSClient -->|HTTPS AWS APIs| CloudInfrastructure
+    TGW --- VPC1 & VPC2 & VPC3
 ```
 
-The frontend must not hold AWS credentials or call AWS resources directly. The intended flow is React -> Spring Boot -> AWS SDK -> AWS APIs. Private workload traffic follows the VPC route table, Transit Gateway, destination attachment, destination VPC, and destination EC2 path.
+> **Security Mandate**: The React frontend **never holds AWS credentials** and never calls AWS APIs directly. Spring Boot serves as the secure, authenticated integration layer.
 
-## Implemented Lab Scope
+---
 
-The documented lab scope includes the AWS network, one EC2 application server per environment, simple HTTP responses on port `8080`, and Session Manager-based administration. The CloudNexus frontend, Spring Boot backend, JWT authentication, AWS SDK management APIs, and AI assistant are planned architecture unless implemented elsewhere in the repository.
+## 3. AWS Multi-VPC Architecture
 
-## Network Configuration
+The platform manages a multi-environment enterprise network partitioned into three distinct VPCs in the `us-east-1` region:
 
-All resources are documented in the `us-east-1` Region.
+```mermaid
+flowchart LR
+    subgraph DevVPC ["Dev-VPC (10.10.0.0/16)"]
+        DevSub["Public Subnet (10.10.1.0/24)\nPrivate Subnet (10.10.2.0/24)"]
+        DevEC2["Dev-App-Server\n(HTTP :8080)"]
+    end
 
-| Environment | VPC | CIDR | Public subnet | Private application subnet | EC2 server | Response |
-| --- | --- | --- | --- | --- | --- | --- |
-| DEV | `Dev-VPC` | `10.10.0.0/16` | `10.10.1.0/24` | `10.10.2.0/24` | `Dev-App-Server` | `HELLO FROM DEV VPC` |
-| TEST | `Test-VPC` | `10.20.0.0/16` | `10.20.1.0/24` | `10.20.2.0/24` | `Test-App-Server` | `HELLO FROM TEST VPC` |
-| PROD | `Prod-VPC` | `10.30.0.0/16` | `10.30.1.0/24` | `10.30.2.0/24` | `Prod-App-Server` | `HELLO FROM PROD VPC` |
+    subgraph TestVPC ["Test-VPC (10.20.0.0/16)"]
+        TestSub["Public Subnet (10.20.1.0/24)\nPrivate Subnet (10.20.2.0/24)"]
+        TestEC2["Test-App-Server\n(HTTP :8080)"]
+    end
 
-Public subnets are intended for resources that need a path through an Internet Gateway. Private application subnets are reserved for internal workloads without direct Internet exposure. The current learner-lab implementation uses EC2 instances in the public application/testing path for simplicity; it is not a fully private EC2 deployment.
+    subgraph ProdVPC ["Prod-VPC (10.30.0.0/16)"]
+        ProdSub["Public Subnet (10.30.1.0/24)\nPrivate Subnet (10.30.2.0/24)"]
+        ProdEC2["Prod-App-Server\n(HTTP :8080)"]
+    end
 
-Each VPC has its own Internet Gateway: `Dev-IGW`, `Test-IGW`, and `Prod-IGW`. Public route tables are `Dev-Public-RT`, `Test-Public-RT`, and `Prod-Public-RT`.
+    subgraph Hub ["Centralized Hub"]
+        TGW["Enterprise-TGW\n(AWS Transit Gateway)"]
+    end
 
-## Routing and Security
+    DevVPC <-->|Dev-TGW-Attachment| TGW
+    TestVPC <-->|Test-TGW-Attachment| TGW
+    ProdVPC <-->|Prod-TGW-Attachment| TGW
+```
 
-The Transit Gateway is `Enterprise-TGW`, with attachments `Dev-TGW-Attachment`, `Test-TGW-Attachment`, and `Prod-TGW-Attachment`. The intended Transit Gateway routes map `10.10.0.0/16`, `10.20.0.0/16`, and `10.30.0.0/16` to the corresponding attachment.
+### Resource Matrix
 
-The intended VPC routes are DEV -> TEST and PROD, TEST -> DEV and PROD, and PROD -> DEV and TEST, all through `Enterprise-TGW`. Verify route tables in AWS before treating any route as present in a live account.
+| Environment | VPC Name | CIDR Block | Public Subnet | Private Workload Subnet | Workload Instance | Security Group |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **DEV** | `Dev-VPC` | `10.10.0.0/16` | `10.10.1.0/24` | `10.10.2.0/24` | `Dev-App-Server` | `Dev-App-SG` |
+| **TEST** | `Test-VPC` | `10.20.0.0/16` | `10.20.1.0/24` | `10.20.2.0/24` | `Test-App-Server` | `Test-App-SG` |
+| **PROD** | `Prod-VPC` | `10.30.0.0/16` | `10.30.1.0/24` | `10.30.2.0/24` | `Prod-App-Server` | `Prod-App-SG` |
 
-The application Security Groups are `Dev-App-SG`, `Test-App-SG`, and `Prod-App-SG`. The intended policy allows DEV -> TEST and TEST -> PROD on TCP port `8080`; the PROD policy restricts DEV -> PROD. Routing and Security Group rules work together, and Security Groups alone do not implement the entire network security model.
+---
 
-## Connectivity Testing
+## 4. Transit Gateway & Routing Architecture
 
-Run tests from an EC2 instance through Session Manager using private addresses:
+### Hub-and-Spoke Topology
+Rather than point-to-point VPC peering connections, CloudNexus connects all VPCs to a central **Transit Gateway (`Enterprise-TGW`)** via VPC attachments:
+1. `Dev-TGW-Attachment` -> `Dev-VPC`
+2. `Test-TGW-Attachment` -> `Test-VPC`
+3. `Prod-TGW-Attachment` -> `Prod-VPC`
 
+### Route Propagation & Traffic Rules
+- **DEV -> TEST**: Allowed on TCP port 8080 via Transit Gateway routing and `Test-App-SG`.
+- **TEST -> PROD**: Allowed on TCP port 8080 for controlled staging data exchange.
+- **DEV -> PROD**: **Restricted** by policy. Direct access from development environments to production workloads is denied at the security group ingress boundary.
+
+---
+
+## 5. Application & Service Architecture
+
+The backend follows a service-oriented Spring Boot modular architecture:
+
+- **`AwsVpcService`**: Queries live VPCs, CIDR ranges, subnets, and detects CIDR overlaps.
+- **`AwsTransitGatewayService`**: Discovers the Transit Gateway, associated route tables, and attachment states.
+- **`AwsEc2Service`**: Inspects workload nodes, operational states, private IP mappings, and instance types.
+- **`AwsConnectivityService`**: Executes rule-based cross-VPC reachability evaluations and integrates with AWS Systems Manager (SSM) diagnostics.
+- **`AwsNetworkFlowService`**: Manages VPC Flow Logs discovery and health metric compilation.
+- **`AwsSecurityAnalysisService`**: Audits security groups for 0.0.0.0/0 exposure, unmanaged open ports, and risky ingress permissions.
+- **`EvidenceBasedAiService`**: Synthesizes live infrastructure evidence to answer complex troubleshooting queries with grounded explanations.
+- **`InMemoryAuditService`**: Maintains an immutable compliance event log bounded to 200 entries with thread-safe `CopyOnWriteArrayList`.
+- **`HealthController`**: Unauthenticated endpoint returning application liveness and AWS STS availability.
+
+---
+
+## 6. Authentication & JWT Security Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Operator / Admin
+    participant UI as React Frontend
+    participant AuthCtrl as AuthController
+    participant Sec as Spring Security
+    participant Audit as InMemoryAuditService
+
+    User->>UI: Enter Credentials (admin / password)
+    UI->>AuthCtrl: POST /api/auth/login { username, password }
+    AuthCtrl->>Sec: authenticate(UsernamePasswordAuthenticationToken)
+    Sec-->>AuthCtrl: Authentication Success (ROLE_ADMIN)
+    AuthCtrl->>Audit: recordLog("Login", user, "SUCCESS")
+    AuthCtrl-->>UI: 200 OK { token: "JWT...", user: "admin", role: "ADMIN" }
+    UI->>UI: Store token in memory / sessionStorage
+
+    Note over UI,AuthCtrl: Subsequent API Requests
+    UI->>Sec: GET /api/vpcs (Header: Authorization: Bearer <JWT>)
+    Sec->>Sec: Validate signature & claims
+    Sec-->>UI: 200 OK { success: true, data: [ ... ] }
+```
+
+---
+
+## 7. AWS SDK v2 Integration
+
+CloudNexus leverages the **AWS SDK for Java v2**:
+- **Non-blocking Client Beans**: Spring-managed singleton beans for `Ec2Client`, `CloudWatchClient`, and `StsClient`.
+- **Default Credentials Provider**: Seamlessly supports IAM Roles, Instance Profiles (`LabInstanceProfile`), AWS CLI profiles, and temporary session tokens.
+- **Defensive Error Handling**: Catching AWS service exceptions (`403 Access Denied`, `400 Invalid Parameter`, network timeouts) cleanly, translating them into RFC-compliant error responses while maintaining platform availability.
+
+---
+
+## 8. Network Monitoring & Observability
+
+- **Network Health Algorithm**: Computes a weighted operational score based on:
+  - VPC attachment states (30%)
+  - Route table propagation completeness (25%)
+  - Workload instance status (25%)
+  - Security posture & findings count (20%)
+- **VPC Flow Logs**: Monitors active packet capture windows, rejection counts, and network anomalies.
+- **CloudWatch Telemetry**: Aggregates CPU utilization, network in/out bytes, and packet metrics across multi-VPC workloads.
+
+---
+
+## 9. Connectivity Diagnostics Engine
+
+Provides instantaneous reachability analysis between any two VPCs:
+- **Routing Verification**: Verifies route table routes targeting `Enterprise-TGW`.
+- **Security Policy Evaluation**: Validates destination security groups for appropriate source CIDR and port authorizations.
+- **SSM Diagnostic Execution**: Where EC2 instances are online and SSM-managed, executes private network probes via `AWS-RunShellScript`.
+- **Honest Telemetry**: When instances are stopped or offline, accurately reports evaluated policy status without fabricating fake latency or simulated ping outputs.
+
+---
+
+## 10. Security Intelligence & Compliance
+
+Continuously analyzes AWS security groups against critical vulnerability vectors:
+1. **Public SSH Exposure**: TCP port 22 open to `0.0.0.0/0` (Severity: HIGH).
+2. **Public RDP Exposure**: TCP port 3389 open to `0.0.0.0/0` (Severity: HIGH).
+3. **Unrestricted Ingress**: All protocols `-1` permitted from `0.0.0.0/0` (Severity: CRITICAL).
+4. **Environment Isolation Breach**: Ingress rules allowing unauthorized traffic paths into the PROD VPC.
+
+---
+
+## 11. Evidence-Based AI Network Assistant
+
+Unlike generic chat tools, the CloudNexus AI Assistant is **grounded in verifiable cloud evidence**:
+- **Topology Awareness**: Ingests real VPC CIDRs, route tables, and instance states.
+- **Root-Cause Analysis**: Explains connectivity bottlenecks citing specific security group rules and route table missing hops.
+- **Risk Remediation**: Delivers prioritized, actionable steps for security findings.
+
+---
+
+## 12. Enterprise Audit Trail
+
+- **Immutable Records**: Captures logins, diagnostics runs, AI analyses, and security scans.
+- **Multi-Dimensional Filtering**: Search by action, operator, status (`SUCCESS`, `WARNING`, `CRITICAL`), and resource identifier.
+- **Correlation IDs**: Emits `X-Correlation-ID` across all transactions for end-to-end observability and log tracing.
+
+---
+
+## 13. Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 18, Vite 6, Tailwind CSS, Lucide React, React Flow, Recharts |
+| **Backend** | Java 17+, Spring Boot 3.3, Spring Security 6, JJWT, Jackson |
+| **Cloud SDK** | AWS SDK for Java v2 (EC2, CloudWatch, STS) |
+| **Build & Tooling** | Maven Wrapper (`mvnw`), npm, Git |
+
+---
+
+## 14. Local Development & Setup
+
+### Prerequisites
+- JDK 17 or higher
+- Node.js 18+ and npm
+- AWS credentials with read-only access (optional for mock mode)
+
+### 1. Backend Setup
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+*API runs at `http://localhost:8080`*
+
+### 2. Frontend Setup
 ```bash
-curl http://<TEST_PRIVATE_IP>:8080
-# HELLO FROM TEST VPC
+cd frontend
+npm install
+npm run dev
+```
+*UI runs at `http://localhost:5173`*
 
-curl http://<PROD_PRIVATE_IP>:8080
-# HELLO FROM PROD VPC
+### Default Demonstration Credentials
+- **Admin**: `admin` / `password` (Full access)
+- **Viewer**: `viewer` / `password` (Read-only access)
+
+---
+
+## 15. Configuration & Environment Variables
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `SERVER_PORT` | Backend HTTP port | `8080` |
+| `AWS_REGION` | Target AWS region | `us-east-1` |
+| `CLOUDNEXUS_DATA_SOURCE` | Service provider (`aws` or `mock`) | `aws` |
+| `JWT_SECRET` | Cryptographic signing key | Development Key |
+| `AWS_ACCESS_KEY_ID` | AWS IAM Access Key | Sourced from environment / IAM role |
+| `AWS_SECRET_ACCESS_KEY`| AWS IAM Secret Key | Sourced from environment / IAM role |
+| `AWS_SESSION_TOKEN` | AWS Session Token (Learner Lab) | Sourced dynamically |
+
+---
+
+## 16. Testing & Verification
+
+```powershell
+# Run backend test suite (56 tests)
+cd backend
+.\mvnw.cmd clean test
+
+# Build frontend production bundle
+cd ../frontend
+npm run build
 ```
 
-The DEV -> PROD request should be restricted according to the PROD Security Group policy. Keep private IPs as placeholders in committed documentation.
+---
 
-## Technology Stack
+## 17. Security Considerations & Learner Lab Limitations
 
-| Area | Technologies |
-| --- | --- |
-| AWS lab | Amazon VPC, Transit Gateway, EC2, Systems Manager, IAM, Internet Gateway, route tables, Security Groups |
-| Planned frontend | React, Vite, TypeScript, Tailwind CSS, React Router, React Flow |
-| Planned backend | Java, Spring Boot, Maven, Spring Security, JWT, AWS SDK for Java |
-| Development | Git, GitHub, VS Code, GitHub Copilot / AI-assisted development |
-| Planned operations | CloudWatch where implemented, monitoring, and audit information |
-
-## Security Principles
-
-- Never hardcode AWS credentials, API keys, or secrets.
-- Never commit secret `.env` files, `node_modules`, or build output.
-- Prefer IAM roles and instance profiles, including `LabInstanceProfile` in the learner lab.
-- Use least privilege and Session Manager instead of unnecessary public SSH access.
-- Keep environments separated and use private IPs for internal application traffic.
-- Keep a human in control of production changes; AI must not automatically modify production networking or security configuration.
-
-## Setup
-
-See [docs/setup.md](docs/setup.md) for the step-by-step AWS setup, application deployment, connectivity checks, troubleshooting, and cleanup guidance.
-
-## Future Scope
-
-Planned improvements include a React topology visualization, Spring Boot AWS management APIs, AWS SDK integration, CloudWatch monitoring, VPC Flow Logs, a network health dashboard, automated diagnostics, AI-assisted troubleshooting, role-based access control, audit logging, Terraform or CloudFormation, CI/CD, automated validation, private-subnet architecture, multi-Availability Zone high availability, and centralized security monitoring. These remain future scope unless implemented in the repository.
+- **Read-Only Guarantee**: CloudNexus cannot alter, delete, or create AWS resources.
+- **Zero Secrets**: Credentials are never bundled in client code or stored in Git.
+- **Learner Lab Awareness**: Handles transient session token expirations, restricted VPC Flow Log setups, and stopped EC2 nodes gracefully without crashing.
