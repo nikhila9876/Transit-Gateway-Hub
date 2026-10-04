@@ -2,6 +2,7 @@ package com.cloudnexus.service;
 
 import com.cloudnexus.dto.AiAnalysisRequest;
 import com.cloudnexus.dto.AiAnalysisResponse;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -12,6 +13,7 @@ import java.util.List;
  * Provides structured diagnostic analysis answering VPC reachability and policy questions.
  */
 @Service
+@ConditionalOnProperty(name = "cloudnexus.data-source", havingValue = "mock")
 public class MockAiService implements AiService {
 
     @Override

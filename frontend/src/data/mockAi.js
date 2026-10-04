@@ -1,10 +1,10 @@
 export const SUGGESTED_QUESTIONS = [
   "Why can't DEV reach TEST?",
-  "Explain my Transit Gateway topology.",
-  "Are there any security risks?",
-  "Which resources need attention?",
-  "What routes connect DEV and TEST?",
-  "What should I check if connectivity fails?"
+  "Is PROD isolated correctly?",
+  "Which VPC has the highest risk?",
+  "What network routes connect DEV and TEST?",
+  "Are any instances publicly exposed?",
+  "Explain my Transit Gateway topology."
 ];
 
 export const MOCK_AI_STRUCTURED_RESPONSES = {
