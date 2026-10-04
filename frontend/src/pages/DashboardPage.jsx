@@ -99,7 +99,7 @@ export const DashboardPage = () => {
         <StatCard
           title="Total VPCs"
           value={summary?.totalVpcs ?? safeVpcList.length}
-          subvalue="3 connected environments"
+          subvalue={`${summary?.totalVpcs ?? safeVpcList.length} connected environments`}
           icon="Layers"
           color="blue"
         />
@@ -116,8 +116,8 @@ export const DashboardPage = () => {
         {/* CARD 3: TGW Attachments */}
         <StatCard
           title="TGW Attachments"
-          value={summary?.tgwAttachments ?? (tgw?.attachments?.length || 3)}
-          subvalue="All attachments active"
+          value={summary?.tgwAttachments ?? summary?.attachmentCount ?? (tgw?.attachments?.length || 0)}
+          subvalue={`${summary?.tgwAttachments ?? summary?.attachmentCount ?? (tgw?.attachments?.length || 0)} attachments active`}
           icon="Network"
           color="indigo"
         />
@@ -125,8 +125,8 @@ export const DashboardPage = () => {
         {/* CARD 4: EC2 Instances */}
         <StatCard
           title="EC2 Instances"
-          value={summary?.ec2Instances ?? 3}
-          subvalue="2 healthy • 1 attention"
+          value={summary?.ec2Count ?? summary?.ec2Instances ?? 0}
+          subvalue="Discovered Workload Nodes"
           icon="Server"
           color="cyan"
         />
@@ -134,21 +134,19 @@ export const DashboardPage = () => {
         {/* CARD 5: Network Health */}
         <StatCard
           title="Network Health"
-          value={`${summary?.networkHealth || 94}%`}
-          subvalue="+3.2% from previous check"
+          value={`${summary?.networkHealth ?? 100}%`}
+          subvalue={(summary?.networkHealth ?? 100) >= 90 ? "Operational & Optimal" : "Degraded - Attention Needed"}
           icon="Activity"
-          color="green"
-          trend="+3.2%"
-          trendDirection="up"
+          color={(summary?.networkHealth ?? 100) >= 90 ? "green" : (summary?.networkHealth ?? 100) >= 70 ? "amber" : "red"}
         />
 
         {/* CARD 6: Security Findings */}
         <StatCard
           title="Security Findings"
-          value={summary?.securityFindings ?? 4}
-          subvalue="1 critical • 2 warnings"
+          value={summary?.securityFindings ?? 0}
+          subvalue={(summary?.securityFindings ?? 0) > 0 ? `${summary?.securityFindings} active finding(s)` : "Zero active findings"}
           icon="ShieldCheck"
-          color="amber"
+          color={(summary?.securityFindings ?? 0) > 0 ? "amber" : "green"}
         />
       </div>
 

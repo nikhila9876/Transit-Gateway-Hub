@@ -46,10 +46,11 @@ export const RouteTablesPage = () => {
 
   const safeRouteTables = Array.isArray(routeTables) ? routeTables : [];
   const filteredRouteTables = safeRouteTables.filter((rt) => {
+    const s = (searchTerm || '').toLowerCase();
     const matchesSearch =
-      rt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rt.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rt.vpcName.toLowerCase().includes(searchTerm.toLowerCase());
+      (rt.name ? rt.name.toLowerCase().includes(s) : false) ||
+      (rt.id ? rt.id.toLowerCase().includes(s) : false) ||
+      (rt.vpcName ? rt.vpcName.toLowerCase().includes(s) : false);
 
     const matchesVpc = selectedVpc === 'All' || rt.vpcName === selectedVpc;
     const matchesState = selectedState === 'All' || (rt.status || 'Active') === selectedState;

@@ -53,11 +53,12 @@ export const VpcsPage = () => {
 
   const safeVpcs = Array.isArray(vpcs) ? vpcs : [];
   const filteredVpcs = safeVpcs.filter((v) => {
+    const s = (searchTerm || '').toLowerCase();
     const matchesSearch =
-      v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.cidr.includes(searchTerm) ||
-      v.id.toLowerCase().includes(searchTerm.toLowerCase());
+      (v.name ? v.name.toLowerCase().includes(s) : false) ||
+      (v.displayName ? v.displayName.toLowerCase().includes(s) : false) ||
+      (v.cidr ? v.cidr.includes(searchTerm) : false) ||
+      (v.id ? v.id.toLowerCase().includes(s) : false);
 
     const matchesRegion = selectedRegion === 'All' || v.region === selectedRegion;
     const matchesStatus = selectedStatus === 'All' || (v.status || 'Healthy') === selectedStatus;

@@ -80,10 +80,10 @@ export const MonitoringPage = () => {
   if (loading) return <LoadingState message="Collecting infrastructure telemetry from CloudWatch probe and network health engine..." />;
   if (error) return <ErrorState message={error} onRetry={fetchTelemetry} />;
 
-  const cpuVal = metrics?.cpuUtilization !== undefined ? `${metrics.cpuUtilization}%` : '18.4%';
-  const latencyVal = metrics?.avgLatencyMs !== undefined ? `${metrics.avgLatencyMs} ms` : '1.34 ms';
-  const instanceHealthVal = metrics?.instanceHealth !== undefined ? `${metrics.instanceHealth}%` : '100%';
-  const availabilityVal = metrics?.availability || '99.99%';
+  const cpuVal = metrics?.cpuUtilization !== undefined ? `${metrics.cpuUtilization}%` : 'Metric unavailable';
+  const latencyVal = metrics?.avgLatencyMs !== undefined ? `${metrics.avgLatencyMs} ms` : 'Metric unavailable';
+  const instanceHealthVal = metrics?.instanceHealth !== undefined ? `${metrics.instanceHealth}%` : 'Metric unavailable';
+  const availabilityVal = metrics?.availability || 'Available';
 
   const vpcChartData = (metrics?.vpcMetrics || []).map((vm) => ({
     vpc: vm.vpc,
@@ -91,8 +91,8 @@ export const MonitoringPage = () => {
     throughputMbps: vm.throughputMbps,
   }));
 
-  const overallScore = networkHealth?.overallScore ?? 92;
-  const healthStatus = networkHealth?.status || 'Excellent';
+  const overallScore = networkHealth?.overallScore ?? 100;
+  const healthStatus = networkHealth?.status || 'HEALTHY';
 
   return (
     <div className="space-y-6">

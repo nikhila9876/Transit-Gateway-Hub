@@ -150,29 +150,29 @@ export const Ec2Page = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total"
-          value={instances.length || 3}
+          value={safeInstances.length}
           subvalue="Provisioned EC2 Fleet"
           icon="Server"
           color="blue"
         />
         <StatCard
           title="Running"
-          value={runningCount || 3}
-          subvalue="100% Operational"
+          value={runningCount}
+          subvalue={runningCount === safeInstances.length && safeInstances.length > 0 ? "100% Operational" : `${runningCount} of ${safeInstances.length} online`}
           icon="Activity"
           color="green"
         />
         <StatCard
           title="Stopped"
-          value={stoppedCount || 0}
-          subvalue="No stopped instances"
+          value={stoppedCount}
+          subvalue={stoppedCount > 0 ? `${stoppedCount} stopped instances` : "No stopped instances"}
           icon="Server"
           color="slate"
         />
         <StatCard
           title="Health Issues"
-          value={healthIssuesCount || 1}
-          subvalue={healthIssuesCount > 0 ? "1 Node Requires Review" : "0 Health Issues"}
+          value={healthIssuesCount}
+          subvalue={healthIssuesCount > 0 ? `${healthIssuesCount} Node(s) Require Review` : "0 Health Issues"}
           icon="AlertTriangle"
           color={healthIssuesCount > 0 ? "amber" : "green"}
         />

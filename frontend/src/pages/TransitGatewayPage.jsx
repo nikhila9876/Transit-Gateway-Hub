@@ -70,7 +70,7 @@ export const TransitGatewayPage = () => {
       accessor: 'subnetIds',
       render: (row) => (
         <span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-          {row.subnetIds?.[0] || 'subnet-0dev-pub'}
+          {row.subnetIds?.[0] || row.subnetId || 'Direct'}
         </span>
       ),
     },
@@ -152,29 +152,29 @@ export const TransitGatewayPage = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           <StatCard
             title="Connected VPCs"
-            value="3"
-            subvalue="DEV, TEST, PROD"
+            value={attachments.length}
+            subvalue={`${attachments.length} Discovered Attachments`}
             icon="Layers"
             color="blue"
           />
           <StatCard
             title="Attachments"
-            value="3"
-            subvalue="100% Associated"
+            value={attachments.length}
+            subvalue={attachments.every(a => a.state === 'available') ? "100% Associated" : "Attachments active"}
             icon="Network"
             color="indigo"
           />
           <StatCard
             title="Route Tables"
-            value="3"
+            value={tgw?.routeTableCount ?? (routes.length > 0 ? 3 : 1)}
             subvalue="Subnet propagation"
             icon="GitFork"
             color="cyan"
           />
           <StatCard
             title="Routes"
-            value="3"
-            subvalue="All routes active"
+            value={routes.length}
+            subvalue={routes.length > 0 ? "Cross-VPC active routes" : "No propagated routes"}
             icon="Activity"
             color="green"
           />

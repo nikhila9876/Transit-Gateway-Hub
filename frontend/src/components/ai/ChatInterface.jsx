@@ -32,7 +32,7 @@ export const ChatInterface = () => {
         ],
         recommendedAction:
           'Ask any question regarding cross-VPC reachability, security posture, or Transit Gateway topology.',
-        model: 'CloudNexus-MockAI-v1',
+        model: 'CloudNexus-EvidenceEngine-v1',
       },
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
