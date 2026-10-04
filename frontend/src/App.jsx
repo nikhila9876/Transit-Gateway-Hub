@@ -52,11 +52,7 @@ export const App = () => {
             <Route element={<AuthLayout />}>
               <Route
                 path="/login"
-                element={
-                  <PublicRoute>
-                    <LoginPage />
-                  </PublicRoute>
-                }
+                element={<LoginPage />}
               />
             </Route>
 

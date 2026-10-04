@@ -11,10 +11,10 @@ export { MOCK_AUDIT_LOGS } from './mockAudit';
 export { SUGGESTED_QUESTIONS, MOCK_AI_STRUCTURED_RESPONSES, getStructuredAiResponse } from './mockAi';
 
 import { MOCK_VPCS } from './mockVpcs';
-import { MOCK_TRANSIT_GATEWAY } from './mockTransitGateway';
+import { MOCK_TRANSIT_GATEWAY, MOCK_ROUTE_TABLES } from './mockTransitGateway';
 import { MOCK_EC2_INSTANCES } from './mockEc2';
 import { MOCK_MONITORING } from './mockMonitoring';
-import { MOCK_SECURITY } from './mockSecurity';
+import { MOCK_SECURITY, MOCK_SECURITY_FINDINGS } from './mockSecurity';
 import { MOCK_AUDIT_LOGS } from './mockAudit';
 
 export const MOCK_DASHBOARD_SUMMARY = {
