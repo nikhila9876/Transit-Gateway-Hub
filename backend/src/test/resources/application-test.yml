@@ -1,0 +1,3 @@
+# CloudNexus Test Profile Configuration
+cloudnexus:
+  data-source: mock

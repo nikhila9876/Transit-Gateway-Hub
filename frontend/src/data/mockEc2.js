@@ -1,0 +1,61 @@
+export const MOCK_EC2_INSTANCES = [
+  {
+    id: "i-0dev123456789abcd",
+    name: "Dev-App-Server",
+    environment: "DEV",
+    vpcId: "vpc-0dev1010001",
+    vpcName: "DEV",
+    subnetId: "subnet-0dev-pub",
+    privateIp: "10.10.1.45",
+    publicIp: "34.200.12.80",
+    instanceType: "t3.micro",
+    state: "running",
+    health: "Healthy",
+    securityGroupId: "sg-0dev887766",
+    securityGroupName: "Dev-App-SG",
+    iamRole: "LabInstanceProfile",
+    appPort: 8080,
+    serviceResponse: "HELLO FROM DEV VPC",
+    sessionManagerEnabled: true
+  },
+  {
+    id: "i-0test123456789abcd",
+    name: "Test-App-Server",
+    environment: "TEST",
+    vpcId: "vpc-0test1020002",
+    vpcName: "TEST",
+    subnetId: "subnet-0test-pub",
+    privateIp: "10.20.1.88",
+    publicIp: "54.210.45.19",
+    instanceType: "t3.micro",
+    state: "running",
+    health: "Healthy",
+    securityGroupId: "sg-0test887766",
+    securityGroupName: "Test-App-SG",
+    iamRole: "LabInstanceProfile",
+    appPort: 8080,
+    serviceResponse: "HELLO FROM TEST VPC",
+    sessionManagerEnabled: true
+  },
+  {
+    id: "i-0prod123456789abcd",
+    name: "Prod-App-Server",
+    environment: "PROD",
+    vpcId: "vpc-0prod1030003",
+    vpcName: "PROD",
+    subnetId: "subnet-0prod-pub",
+    privateIp: "10.30.1.112",
+    publicIp: "52.90.87.64",
+    instanceType: "t3.micro",
+    state: "running",
+    health: "Attention Required",
+    securityGroupId: "sg-0prod887766",
+    securityGroupName: "Prod-App-SG",
+    iamRole: "LabInstanceProfile",
+    appPort: 8080,
+    serviceResponse: "HELLO FROM PROD VPC",
+    sessionManagerEnabled: true
+  }
+];
+
+export default MOCK_EC2_INSTANCES;
