@@ -1,4 +1,28 @@
+/**
+ * Realistic CloudWatch & Network Health Monitoring Telemetry
+ * Provides time-series telemetry across 1H, 6H, 24H, and 7D intervals.
+ */
+
 export const MOCK_MONITORING = {
+  healthScore: 94,
+  status: "Optimal",
+  resourceHealth: {
+    healthy: 8,
+    warning: 1,
+    critical: 0,
+    total: 9,
+    breakdown: [
+      { name: "Dev-VPC (10.10.0.0/16)", status: "Healthy", type: "VPC" },
+      { name: "Test-VPC (10.20.0.0/16)", status: "Healthy", type: "VPC" },
+      { name: "Prod-VPC (10.30.0.0/16)", status: "Warning", type: "VPC", reason: "Workload in public subnet" },
+      { name: "Enterprise-TGW", status: "Healthy", type: "TGW" },
+      { name: "Dev-TGW-Attachment", status: "Healthy", type: "Attachment" },
+      { name: "Test-TGW-Attachment", status: "Healthy", type: "Attachment" },
+      { name: "Prod-TGW-Attachment", status: "Healthy", type: "Attachment" },
+      { name: "Dev-App-Server", status: "Healthy", type: "EC2" },
+      { name: "Test-App-Server", status: "Healthy", type: "EC2" }
+    ]
+  },
   kpis: {
     cpu: {
       value: "14.2%",
@@ -12,6 +36,18 @@ export const MOCK_MONITORING = {
       status: "Optimal",
       color: "blue"
     },
+    latency: {
+      value: "1.2 ms",
+      subvalue: "Cross-VPC roundtrip latency",
+      status: "Optimal",
+      color: "blue"
+    },
+    packetLoss: {
+      value: "0.01%",
+      subvalue: "Zero dropped frames across TGW",
+      status: "Optimal",
+      color: "green"
+    },
     ec2Health: {
       value: "100%",
       subvalue: "3/3 instances reporting healthy",
@@ -22,6 +58,18 @@ export const MOCK_MONITORING = {
       value: "99.98%",
       subvalue: "Zero downtime in us-east-1",
       status: "Healthy",
+      color: "green"
+    },
+    requestCount: {
+      value: "142.8K req/s",
+      subvalue: "Peak volume sustained",
+      status: "Optimal",
+      color: "indigo"
+    },
+    errorRate: {
+      value: "0.02%",
+      subvalue: "Well within 0.1% SLA threshold",
+      status: "Optimal",
       color: "green"
     }
   },
@@ -36,10 +84,24 @@ export const MOCK_MONITORING = {
       ],
       network: [
         { time: "00:00", bytesIn: 35, bytesOut: 32 },
-        { time: "00:15", dev: 42, test: 40, bytesIn: 48, bytesOut: 44 },
+        { time: "00:15", bytesIn: 48, bytesOut: 44 },
         { time: "00:30", bytesIn: 55, bytesOut: 51 },
         { time: "00:45", bytesIn: 62, bytesOut: 58 },
         { time: "01:00", bytesIn: 50, bytesOut: 46 }
+      ],
+      requests: [
+        { time: "00:00", requests: 120, connections: 45, errorRate: 0.01 },
+        { time: "00:15", requests: 135, connections: 48, errorRate: 0.02 },
+        { time: "00:30", requests: 150, connections: 52, errorRate: 0.01 },
+        { time: "00:45", requests: 162, connections: 55, errorRate: 0.02 },
+        { time: "01:00", requests: 145, connections: 49, errorRate: 0.01 }
+      ],
+      latency: [
+        { time: "00:00", devToTest: 1.2, testToProd: 1.4 },
+        { time: "00:15", devToTest: 1.1, testToProd: 1.3 },
+        { time: "00:30", devToTest: 1.3, testToProd: 1.5 },
+        { time: "00:45", devToTest: 1.2, testToProd: 1.4 },
+        { time: "01:00", devToTest: 1.2, testToProd: 1.4 }
       ],
       instanceHealth: [
         { time: "00:00", healthy: 3, degraded: 0 },
@@ -72,6 +134,22 @@ export const MOCK_MONITORING = {
         { time: "21:00", bytesIn: 85, bytesOut: 80 },
         { time: "22:00", bytesIn: 64, bytesOut: 61 },
         { time: "23:00", bytesIn: 52, bytesOut: 49 }
+      ],
+      requests: [
+        { time: "18:00", requests: 110, connections: 40, errorRate: 0.01 },
+        { time: "19:00", requests: 142, connections: 50, errorRate: 0.02 },
+        { time: "20:00", requests: 185, connections: 68, errorRate: 0.03 },
+        { time: "21:00", requests: 195, connections: 72, errorRate: 0.02 },
+        { time: "22:00", requests: 160, connections: 56, errorRate: 0.01 },
+        { time: "23:00", requests: 130, connections: 44, errorRate: 0.01 }
+      ],
+      latency: [
+        { time: "18:00", devToTest: 1.2, testToProd: 1.4 },
+        { time: "19:00", devToTest: 1.1, testToProd: 1.3 },
+        { time: "20:00", devToTest: 1.3, testToProd: 1.5 },
+        { time: "21:00", devToTest: 1.2, testToProd: 1.4 },
+        { time: "22:00", devToTest: 1.4, testToProd: 1.6 },
+        { time: "23:00", devToTest: 1.2, testToProd: 1.4 }
       ],
       instanceHealth: [
         { time: "18:00", healthy: 3, degraded: 0 },
@@ -106,6 +184,22 @@ export const MOCK_MONITORING = {
         { time: "12:00", bytesIn: 98, bytesOut: 92 },
         { time: "16:00", bytesIn: 110, bytesOut: 105 },
         { time: "20:00", bytesIn: 70, bytesOut: 66 }
+      ],
+      requests: [
+        { time: "00:00", requests: 60, connections: 22, errorRate: 0.01 },
+        { time: "04:00", requests: 45, connections: 18, errorRate: 0.00 },
+        { time: "08:00", requests: 140, connections: 52, errorRate: 0.01 },
+        { time: "12:00", requests: 220, connections: 84, errorRate: 0.02 },
+        { time: "16:00", requests: 240, connections: 92, errorRate: 0.02 },
+        { time: "20:00", requests: 150, connections: 60, errorRate: 0.01 }
+      ],
+      latency: [
+        { time: "00:00", devToTest: 1.1, testToProd: 1.3 },
+        { time: "04:00", devToTest: 1.0, testToProd: 1.2 },
+        { time: "08:00", devToTest: 1.2, testToProd: 1.4 },
+        { time: "12:00", devToTest: 1.4, testToProd: 1.6 },
+        { time: "16:00", devToTest: 1.5, testToProd: 1.7 },
+        { time: "20:00", devToTest: 1.3, testToProd: 1.4 }
       ],
       instanceHealth: [
         { time: "00:00", healthy: 3, degraded: 0 },
@@ -143,6 +237,24 @@ export const MOCK_MONITORING = {
         { time: "Sat", bytesIn: 40, bytesOut: 36 },
         { time: "Sun", bytesIn: 35, bytesOut: 32 }
       ],
+      requests: [
+        { time: "Mon", requests: 160, connections: 60, errorRate: 0.01 },
+        { time: "Tue", requests: 175, connections: 65, errorRate: 0.01 },
+        { time: "Wed", requests: 210, connections: 80, errorRate: 0.02 },
+        { time: "Thu", requests: 190, connections: 72, errorRate: 0.01 },
+        { time: "Fri", requests: 230, connections: 88, errorRate: 0.02 },
+        { time: "Sat", requests: 90, connections: 34, errorRate: 0.01 },
+        { time: "Sun", requests: 80, connections: 30, errorRate: 0.00 }
+      ],
+      latency: [
+        { time: "Mon", devToTest: 1.2, testToProd: 1.4 },
+        { time: "Tue", devToTest: 1.3, testToProd: 1.5 },
+        { time: "Wed", devToTest: 1.4, testToProd: 1.6 },
+        { time: "Thu", devToTest: 1.3, testToProd: 1.5 },
+        { time: "Fri", devToTest: 1.5, testToProd: 1.7 },
+        { time: "Sat", devToTest: 1.1, testToProd: 1.3 },
+        { time: "Sun", devToTest: 1.1, testToProd: 1.2 }
+      ],
       instanceHealth: [
         { time: "Mon", healthy: 3, degraded: 0 },
         { time: "Tue", healthy: 3, degraded: 0 },
@@ -179,7 +291,11 @@ export const MOCK_MONITORING = {
     { time: "22:00", bytesIn: 64, bytesOut: 61 },
     { time: "23:00", bytesIn: 52, bytesOut: 49 }
   ],
-  healthScore: 94
+  vpcMetrics: [
+    { vpc: "DEV VPC", latencyMs: 1.2, throughputMbps: 4.8 },
+    { vpc: "TEST VPC", latencyMs: 1.3, throughputMbps: 5.2 },
+    { vpc: "PROD VPC", latencyMs: 1.4, throughputMbps: 6.9 }
+  ]
 };
 
 export default MOCK_MONITORING;

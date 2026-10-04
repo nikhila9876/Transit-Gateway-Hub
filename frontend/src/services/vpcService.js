@@ -1,47 +1,46 @@
 import vpcApi from '../api/vpcApi';
-import { MOCK_VPCS } from '../data/mockData';
+import { isMockMode } from '../utils/config';
+import { mockVpcService } from './mockServices';
 
 export const vpcService = {
   /**
-   * Fetch all VPCs from backend API with fallback
+   * Fetch all VPCs from backend API or mock service
    * @returns {Promise<Array>}
    */
   async getVpcs() {
+    if (isMockMode()) {
+      return mockVpcService.getVpcs();
+    }
     try {
       const vpcs = await vpcApi.getAll();
       if (Array.isArray(vpcs) && vpcs.length > 0) {
         return vpcs;
       }
-      return MOCK_VPCS;
+      return mockVpcService.getVpcs();
     } catch (err) {
       console.warn('Backend unavailable, using fallback mock VPCs:', err.message);
-      return MOCK_VPCS;
+      return mockVpcService.getVpcs();
     }
   },
 
   /**
-   * Fetch VPC details by ID from backend API
+   * Fetch VPC details by ID from backend API or mock service
    * @param {string} id
    * @returns {Promise<Object>}
    */
   async getVpcById(id) {
+    if (isMockMode()) {
+      return mockVpcService.getVpcById(id);
+    }
     try {
       const vpc = await vpcApi.getById(id);
       if (vpc && typeof vpc === 'object' && vpc.id) {
         return vpc;
       }
-      const found = MOCK_VPCS.find(
-        (v) => v.id === id || v.name?.toLowerCase() === id?.toLowerCase()
-      );
-      if (found) return found;
-      throw new Error(`VPC with id ${id} not found`);
+      return mockVpcService.getVpcById(id);
     } catch (err) {
       console.warn('Backend unavailable, searching mock VPCs:', err.message);
-      const found = MOCK_VPCS.find(
-        (v) => v.id === id || v.name?.toLowerCase() === id?.toLowerCase()
-      );
-      if (found) return found;
-      throw new Error(`VPC with id ${id} not found`);
+      return mockVpcService.getVpcById(id);
     }
   },
 };

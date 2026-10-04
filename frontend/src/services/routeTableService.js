@@ -1,17 +1,21 @@
 import routeTableApi from '../api/routeTableApi';
-import { MOCK_ROUTE_TABLES } from '../data/mockData';
+import { isMockMode } from '../utils/config';
+import { mockRouteTableService } from './mockServices';
 
 export const routeTableService = {
   async getRouteTables() {
+    if (isMockMode()) {
+      return mockRouteTableService.getRouteTables();
+    }
     try {
       const list = await routeTableApi.getAll();
       if (Array.isArray(list) && list.length > 0) {
         return list;
       }
-      return MOCK_ROUTE_TABLES;
+      return mockRouteTableService.getRouteTables();
     } catch (err) {
       console.warn('Backend unavailable, using fallback mock route tables:', err.message);
-      return MOCK_ROUTE_TABLES;
+      return mockRouteTableService.getRouteTables();
     }
   },
 };

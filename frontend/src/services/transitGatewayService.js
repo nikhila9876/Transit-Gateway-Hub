@@ -1,43 +1,53 @@
 import transitGatewayApi from '../api/transitGatewayApi';
-import { MOCK_TRANSIT_GATEWAY } from '../data/mockData';
+import { isMockMode } from '../utils/config';
+import { mockTransitGatewayService } from './mockServices';
 
 export const transitGatewayService = {
   async getTransitGateway() {
+    if (isMockMode()) {
+      return mockTransitGatewayService.getTransitGateway();
+    }
     try {
       const tgw = await transitGatewayApi.getTransitGateway();
       if (tgw && typeof tgw === 'object' && tgw.id) {
         return tgw;
       }
-      return MOCK_TRANSIT_GATEWAY;
+      return mockTransitGatewayService.getTransitGateway();
     } catch (err) {
       console.warn('Backend unavailable, using fallback mock Transit Gateway:', err.message);
-      return MOCK_TRANSIT_GATEWAY;
+      return mockTransitGatewayService.getTransitGateway();
     }
   },
 
   async getAttachments() {
+    if (isMockMode()) {
+      return mockTransitGatewayService.getAttachments();
+    }
     try {
       const attachments = await transitGatewayApi.getAttachments();
       if (Array.isArray(attachments) && attachments.length > 0) {
         return attachments;
       }
-      return MOCK_TRANSIT_GATEWAY.attachments || [];
+      return mockTransitGatewayService.getAttachments();
     } catch (err) {
       console.warn('Backend unavailable, using fallback mock TGW attachments:', err.message);
-      return MOCK_TRANSIT_GATEWAY.attachments || [];
+      return mockTransitGatewayService.getAttachments();
     }
   },
 
   async getRoutes() {
+    if (isMockMode()) {
+      return mockTransitGatewayService.getRoutes();
+    }
     try {
       const routes = await transitGatewayApi.getRoutes();
       if (Array.isArray(routes) && routes.length > 0) {
         return routes;
       }
-      return MOCK_TRANSIT_GATEWAY.routes || [];
+      return mockTransitGatewayService.getRoutes();
     } catch (err) {
       console.warn('Backend unavailable, using fallback mock TGW routes:', err.message);
-      return MOCK_TRANSIT_GATEWAY.routes || [];
+      return mockTransitGatewayService.getRoutes();
     }
   },
 };

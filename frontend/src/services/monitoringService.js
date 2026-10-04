@@ -1,17 +1,21 @@
 import monitoringApi from '../api/monitoringApi';
-import { MOCK_METRICS } from '../data/mockData';
+import { isMockMode } from '../utils/config';
+import { mockMonitoringService } from './mockServices';
 
 export const monitoringService = {
   async getMetrics() {
+    if (isMockMode()) {
+      return mockMonitoringService.getMetrics();
+    }
     try {
       const metrics = await monitoringApi.getMetrics();
       if (metrics && typeof metrics === 'object') {
         return metrics;
       }
-      return MOCK_METRICS;
+      return mockMonitoringService.getMetrics();
     } catch (err) {
       console.warn('Backend unavailable, using fallback mock monitoring telemetry:', err.message);
-      return MOCK_METRICS;
+      return mockMonitoringService.getMetrics();
     }
   },
 };

@@ -1,4 +1,6 @@
 import connectivityApi from '../api/connectivityApi';
+import { isMockMode } from '../utils/config';
+import { mockConnectivityService } from './mockServices';
 
 export const connectivityService = {
   /**
@@ -10,6 +12,9 @@ export const connectivityService = {
    * @returns {Promise<Object>}
    */
   async testConnectivity(source, destination, protocol = 'TCP', port = 8080) {
+    if (isMockMode()) {
+      return mockConnectivityService.testConnectivity(source, destination, protocol, port);
+    }
     try {
       return await connectivityApi.testConnectivity({
         source,
@@ -20,36 +25,8 @@ export const connectivityService = {
         port,
       });
     } catch (err) {
-      console.warn('Backend probe returned error or unreachable:', err.message);
-      // Fallback simulation if backend offline
-      if (source === 'DEV' && destination === 'PROD') {
-        return {
-          status: 'BLOCKED',
-          statusCode: 403,
-          message: 'Connection timed out / rejected by Prod-App-SG policy. DEV cannot reach PROD directly on port 8080.',
-          diagnosticMessage: 'Security Group Prod-App-SG strictly isolates PROD from DEV direct ingress.',
-          latencyMs: null,
-          path: [
-            'DEV (10.10.1.45)',
-            'Enterprise-TGW (tgw-09e8...)',
-            'PROD (10.30.1.112:8080) [BLOCKED SG]',
-          ],
-          timestamp: new Date().toISOString(),
-        };
-      }
-      return {
-        status: 'SUCCESS',
-        statusCode: 200,
-        message: destination === 'TEST' ? 'HELLO FROM TEST VPC' : 'HELLO FROM PROD VPC',
-        diagnosticMessage: 'Cross-VPC HTTP handshake successful via Enterprise-TGW.',
-        latencyMs: 1.2,
-        path: [
-          `${source} (EC2 Instance)`,
-          'Enterprise-TGW (Transit Gateway Hub)',
-          `${destination} (EC2 :${port})`,
-        ],
-        timestamp: new Date().toISOString(),
-      };
+      console.warn('Backend probe returned error or unreachable, using fallback simulation:', err.message);
+      return mockConnectivityService.testConnectivity(source, destination, protocol, port);
     }
   },
 };

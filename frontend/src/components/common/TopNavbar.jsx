@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, Bell, Shield, CheckCircle2 } from 'lucide-react';
+import { Menu, Bell, Shield, CheckCircle2, Sparkles } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { AWS_REGION } from '../../utils/constants';
+import { isMockMode } from '../../utils/config';
 import GlobalSearch from './GlobalSearch';
 
 const PAGE_METADATA = {
@@ -57,8 +58,20 @@ export const TopNavbar = ({ onMenuClick }) => {
         <GlobalSearch />
       </div>
 
-      {/* Right: Region, System Status, Notifications, User Role */}
+      {/* Right: Region, Demo Mode, System Status, Notifications, User Role */}
       <div className="flex items-center gap-3 flex-shrink-0">
+        {/* DEMO MODE Indicator Badge (Amber/Blue Semantic Badge) */}
+        {isMockMode() && (
+          <div
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 shadow-xs"
+            title="CloudNexus Demo Mode: Running with simulated AWS Transit Gateway & VPC telemetry"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-amber-900 font-bold tracking-tight">DEMO MODE • Mock AWS Data</span>
+            <span className="hidden sm:inline text-[10px] font-semibold text-blue-700 bg-blue-100/80 px-1.5 py-0.2 rounded">AWS</span>
+          </div>
+        )}
+
         {/* AWS Region */}
         <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-mono text-slate-700">
           <span className="text-slate-400 font-sans text-[11px]">Region:</span>
